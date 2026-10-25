@@ -23,7 +23,7 @@ export default function Onboarding() {
   }
 
   return (
-    <Screen>
+    <Screen top>
       <Title>Bem-vindo</Title>
       <Muted>Conectado como {session?.user.email}</Muted>
 

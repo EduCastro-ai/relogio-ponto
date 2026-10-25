@@ -27,7 +27,7 @@ export default function Login() {
   }
 
   return (
-    <Screen>
+    <Screen top>
       <Title>Relógio de Ponto</Title>
       <Muted>Entre com seu e-mail. O perfil (empregador ou empregado) é definido pelo seu cadastro.</Muted>
       <Card>

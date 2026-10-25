@@ -14,10 +14,11 @@ export const colors = {
   ok: "#067647",
 };
 
-export function Screen({ children, scroll = true }: { children: ReactNode; scroll?: boolean }) {
+/** `top`: telas sem cabeçalho de navegação (login, onboarding) precisam do recuo da barra de status. */
+export function Screen({ children, scroll = true, top = false }: { children: ReactNode; scroll?: boolean; top?: boolean }) {
   const body = <View style={s.body}>{children}</View>;
   return (
-    <SafeAreaView style={s.screen} edges={["bottom", "left", "right"]}>
+    <SafeAreaView style={s.screen} edges={top ? ["top", "bottom", "left", "right"] : ["bottom", "left", "right"]}>
       {scroll ? <ScrollView keyboardShouldPersistTaps="handled">{body}</ScrollView> : body}
     </SafeAreaView>
   );
