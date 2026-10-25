@@ -11,8 +11,16 @@ Usuário: sócio da Portofino, perfil dev, fala português. Respostas concisas e
 - `apps/mobile`: esqueleto Expo SDK 58 + expo-router (npm workspaces na raiz). Login por OTP de e-mail, perfil pelo vínculo
   no banco, onboarding (criar domicílio / aceitar convite), tela de ponto com fila offline, espelho do mês, simulador.
   `metro.config.js` resolve os imports `./x.js` → `.ts` do calc. `.env` local (não versionado) com URL + chave publishable.
+  Empregador: `(employer)/_layout` é Stack com `(tabs)` (equipe, simulador) + `espelho/[workerId]` empilhado
+  (tela oculta dentro de Tabs voltava sozinha).
+- Testado em iPhone via Expo Go (25/10): login OTP, criar domicílio, convite, batidas online/offline com geo
+  (`offline_synced`, dentro do raio), espelho mensalista. Rodar com `npx expo start --tunnel` em `apps/mobile`
+  (CLI logado via `eas login --device`; o login por navegador do Expo falha neste Windows).
+- Auth: SMTP próprio (Gmail + senha de app) e templates Magic Link/Confirm signup com `{{ .Token }}`.
+  Para testar o empregado no mesmo e-mail: `educstr.67+empregado@gmail.com`.
+- Dados de teste no banco: domicílio "Ap. da Batataes", empregada Fatima (mensalista R$ 4.000) com batidas de teste de 25/10.
 - Migrations: versões nos arquivos (`20261025000001..4`) diferem das aplicadas no banco (`20261025131710` etc.).
-- Próximo: testar em aparelho (Expo Go), template de e-mail com `{{ .Token }}`, ajustes de ponto, fechamento/ciência do espelho, feriados.
+- Próximo: ajustes de ponto, fechamento/ciência do espelho, feriados, push.
 
 ## Decisões de produto
 - Um app só, perfil definido pelo login. Fase 1 simples, preparada para upgrades.

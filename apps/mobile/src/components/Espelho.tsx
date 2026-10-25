@@ -154,17 +154,21 @@ export function Espelho({ workerId }: { workerId: string }) {
   );
 }
 
+// faltas/DSR/atrasos já reduzem o bruto; os demais descontos (INSS, VT…) vão entre o bruto e o líquido
+const WAGE_DEDUCTIONS = ["FALTA", "DSRPERDA", "ATRASO"];
+
 function MensalistaCard({ r }: { r: MensalistaResult }) {
+  const line = (d: { code: string; label: string; cents: number }) => (
+    <Row key={d.code} label={d.label} value={`− ${fmtBRL(d.cents)}`} />
+  );
   return (
     <Card>
       {r.earnings.map((e) => (
         <Row key={e.code} label={e.label} value={fmtBRL(e.cents)} />
       ))}
-      {r.deductions.map((d) => (
-        <Row key={d.code} label={d.label} value={`− ${fmtBRL(d.cents)}`} />
-      ))}
+      {r.deductions.filter((d) => WAGE_DEDUCTIONS.includes(d.code)).map(line)}
       <Row label="Bruto" value={fmtBRL(r.grossCents)} strong />
-      <Row label="INSS do empregado" value={`− ${fmtBRL(r.inss.total)}`} />
+      {r.deductions.filter((d) => !WAGE_DEDUCTIONS.includes(d.code)).map(line)}
       <Row label="Líquido" value={fmtBRL(r.netCents)} strong />
       <Row label="DAE (empregador)" value={fmtBRL(r.employer.daeCents)} />
       <Row label="Horas trabalhadas" value={fmtHours(r.minutes.worked)} />

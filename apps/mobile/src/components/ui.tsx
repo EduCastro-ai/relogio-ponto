@@ -19,7 +19,14 @@ export function Screen({ children, scroll = true, top = false }: { children: Rea
   const body = <View style={s.body}>{children}</View>;
   return (
     <SafeAreaView style={s.screen} edges={top ? ["top", "bottom", "left", "right"] : ["bottom", "left", "right"]}>
-      {scroll ? <ScrollView keyboardShouldPersistTaps="handled">{body}</ScrollView> : body}
+      {/* automatic: no iOS 26 o cabeçalho da pilha é translúcido e o conteúdo ficaria por baixo dele */}
+      {scroll ? (
+        <ScrollView keyboardShouldPersistTaps="handled" contentInsetAdjustmentBehavior="automatic">
+          {body}
+        </ScrollView>
+      ) : (
+        body
+      )}
     </SafeAreaView>
   );
 }

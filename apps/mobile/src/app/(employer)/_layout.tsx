@@ -1,12 +1,11 @@
-import { Tabs } from "expo-router";
-import { SignOutButton } from "@/components/SignOutButton";
+import { Stack } from "expo-router";
 
+/** Abas do empregador + espelho empilhado por cima (tela oculta dentro de Tabs voltava sozinha). */
 export default function EmployerLayout() {
   return (
-    <Tabs screenOptions={{ headerRight: () => <SignOutButton />, tabBarIconStyle: { display: "none" } }}>
-      <Tabs.Screen name="equipe" options={{ title: "Equipe" }} />
-      <Tabs.Screen name="simulador" options={{ title: "Simulador" }} />
-      <Tabs.Screen name="espelho/[workerId]" options={{ title: "Espelho do mês", href: null }} />
-    </Tabs>
+    <Stack>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="espelho/[workerId]" options={{ title: "Espelho do mês", headerBackTitle: "Equipe" }} />
+    </Stack>
   );
 }
