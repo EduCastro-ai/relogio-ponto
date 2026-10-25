@@ -1,0 +1,9 @@
+{
+  "name": "relogio-ponto",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "test": "npm test -w @relogio/calc",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  }
+}

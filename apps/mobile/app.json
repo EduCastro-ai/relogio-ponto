@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "Relógio de Ponto",
+    "slug": "relogio-ponto",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "br.com.portofino.relogioponto"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "br.com.portofino.relogioponto"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "A localização é registrada só no momento da batida de ponto, para conferir se foi feita no local de trabalho."
+        }
+      ]
+    ],
+    "scheme": "relogioponto",
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

@@ -7,8 +7,12 @@ Usuário: sócio da Portofino, perfil dev, fala português. Respostas concisas e
 ## Estado (25/10/2026)
 - Supabase: projeto `vlzskpuqrxmzdownovpy` ("Relogio de Ponto", sa-east-1). NÃO usar o projeto `bqvfvjmpqriretdutejq` (é de outro app).
 - `supabase/migrations/*`: schema v0.2 + lockdown + performance + seed rule_set 2026. JÁ APLICADO no projeto. Cenários de teste em `supabase/tests/`.
-- `packages/calc`: motor de cálculo puro em TS (28 testes, `npm test`). Premissas em `docs/premissas-motor-calculo.md`.
-- Próximo: esqueleto Expo (login por perfil, tela de ponto, espelho do mês, simulador), usando `@relogio/calc`.
+- `packages/calc`: motor de cálculo puro em TS (33 testes, `npm test`), inclui `punchesToDays` (batidas → dias). Premissas em `docs/premissas-motor-calculo.md`.
+- `apps/mobile`: esqueleto Expo SDK 58 + expo-router (npm workspaces na raiz). Login por OTP de e-mail, perfil pelo vínculo
+  no banco, onboarding (criar domicílio / aceitar convite), tela de ponto com fila offline, espelho do mês, simulador.
+  `metro.config.js` resolve os imports `./x.js` → `.ts` do calc. `.env` local (não versionado) com URL + chave publishable.
+- Migrations: versões nos arquivos (`20261025000001..4`) diferem das aplicadas no banco (`20261025131710` etc.).
+- Próximo: testar em aparelho (Expo Go), template de e-mail com `{{ .Token }}`, ajustes de ponto, fechamento/ciência do espelho, feriados.
 
 ## Decisões de produto
 - Um app só, perfil definido pelo login. Fase 1 simples, preparada para upgrades.
