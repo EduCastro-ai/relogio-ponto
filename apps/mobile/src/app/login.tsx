@@ -41,7 +41,15 @@ export default function Login() {
           editable={!sent}
         />
         {sent && (
-          <Field label="Código recebido por e-mail" value={code} onChangeText={setCode} keyboardType="number-pad" maxLength={8} />
+          // colar do e-mail pode trazer espaços/quebras: mantém só os dígitos (sem maxLength, que cortaria antes da limpeza)
+          <Field
+            label="Código recebido por e-mail"
+            value={code}
+            onChangeText={(t) => setCode(t.replace(/\D/g, "").slice(0, 10))}
+            keyboardType="number-pad"
+            textContentType="oneTimeCode"
+            autoComplete="one-time-code"
+          />
         )}
         {sent ? (
           <>

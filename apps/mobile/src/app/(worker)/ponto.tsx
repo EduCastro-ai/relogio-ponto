@@ -11,6 +11,8 @@ import { supabase } from "@/lib/supabase";
 
 const CONSENT_VERSION = "geo-2026-10-v1";
 const REFUSED_KEY = "relogio.geoRefused";
+// cópia local do aceite: a batida offline não consegue consultar a tabela consents
+const ACCEPTED_KEY = "relogio.geoAccepted";
 
 /** Próximas batidas possíveis a partir da última do turno. */
 function nextKinds(last: PunchKind | undefined): PunchKind[] {
@@ -67,8 +69,15 @@ export default function Ponto() {
 
   /** Consentimento LGPD antes de usar a localização; recusa = batida sem localização. */
   async function askConsent(): Promise<boolean> {
-    const { data } = await supabase.from("consents").select("id").eq("kind", "geolocation").is("revoked_at", null).limit(1);
-    if (data?.length) return true;
+    if (localStorage.getItem(ACCEPTED_KEY) === CONSENT_VERSION) return true;
+    const { data, error } = await supabase.from("consents").select("id").eq("kind", "geolocation").is("revoked_at", null).limit(1);
+    if (data?.length) {
+      localStorage.setItem(ACCEPTED_KEY, CONSENT_VERSION);
+      localStorage.removeItem(REFUSED_KEY);
+      return true;
+    }
+    // sem conexão não dá para registrar o aceite: bate sem localização, sem perguntar
+    if (error) return false;
     if (localStorage.getItem(REFUSED_KEY)) return false;
     const accepted = await new Promise<boolean>((resolve) =>
       Alert.alert(
@@ -84,7 +93,9 @@ export default function Ponto() {
       localStorage.setItem(REFUSED_KEY, "1");
       return false;
     }
-    await supabase.from("consents").insert({ user_id: session!.user.id, kind: "geolocation", document_version: CONSENT_VERSION });
+    const ins = await supabase.from("consents").insert({ user_id: session!.user.id, kind: "geolocation", document_version: CONSENT_VERSION });
+    if (ins.error) return false;
+    localStorage.setItem(ACCEPTED_KEY, CONSENT_VERSION);
     return true;
   }
 
@@ -93,7 +104,11 @@ export default function Ponto() {
     const { granted } = await Location.requestForegroundPermissionsAsync();
     if (!granted) return undefined;
     const timeout = new Promise<undefined>((r) => setTimeout(() => r(undefined), 10_000));
-    const pos = await Promise.race([Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High }), timeout]);
+    // sem internet o GPS demora mais para fixar: cai para a última posição conhecida (até 5 min)
+    const pos =
+      (await Promise.race([Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High }).catch(() => undefined), timeout])) ??
+      (await Location.getLastKnownPositionAsync({ maxAge: 5 * 60_000 }).catch(() => null)) ??
+      undefined;
     return pos && { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracyM: pos.coords.accuracy ?? undefined };
   }
 
