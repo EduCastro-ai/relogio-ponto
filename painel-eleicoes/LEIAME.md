@@ -22,6 +22,7 @@ Abrir http://localhost:8765 (não abre direto pelo arquivo, por causa dos dados 
 | 1 | `node scripts/coletar.mjs` | Baixa o resultado por município (API do portal do TSE, 2 turnos) e a malha do IBGE |
 | 2 | `node scripts/processar.mjs` | Cruza os turnos, calcula swing, viradas e decomposição; confere com os totais oficiais |
 | 3 | `node scripts/locais.mjs` | Agrega por local de votação e bairro a partir dos CSVs em `dados/tse-csv/` |
+| 4 | `node scripts/empacotar.mjs` | Gera `dist/painel-eleicoes-2026.html`: um único arquivo (cerca de 5,8 MB) com d3, dados e mapa embutidos. Abre com duplo clique, sem servidor e sem internet. Não inclui a camada de locais de votação. Precisa do d3 em `dados/vendor/d3-7.9.0/d3.min.js` |
 | – | `node scripts/verificar-tse.mjs` | Só confere se o TSE publicou versão nova dos arquivos por seção (não baixa nada) |
 
 Os passos 1 e 2 já cobrem os dois turnos. O passo 3 usa os CSVs de dados abertos, que hoje têm só o **1º turno** por seção.

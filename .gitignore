@@ -9,3 +9,4 @@ supabase/.temp/
 .DS_Store
 
 painel-eleicoes/dados/
+painel-eleicoes/dist/
