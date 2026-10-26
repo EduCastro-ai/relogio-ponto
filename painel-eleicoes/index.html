@@ -29,7 +29,11 @@
   #map path { stroke:rgba(0,0,0,.18); stroke-width:.3; vector-effect:non-scaling-stroke; }
   #map path.sel { stroke:#000; stroke-width:1.6; }
   .legend { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--mut); margin-top:6px; flex-wrap:wrap; }
-  .legend .bar { height:10px; width:200px; border-radius:5px; }
+  .legend .escala { position:relative; display:inline-block; width:200px; padding-bottom:15px; }
+  .legend .escala .bar { display:block; width:100%; }
+  .legend .marcas span { position:absolute; top:12px; transform:translateX(-50%); font-size:11px; }
+  .legend .aviso-escala { line-height:1.4; }
+  .controls label { display:flex; align-items:center; gap:5px; font-size:12px; color:var(--mut); cursor:pointer; }
   #tip { position:fixed; pointer-events:none; background:var(--card); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:12px; box-shadow:0 4px 14px rgba(0,0,0,.18); display:none; z-index:5; max-width:260px; }
   .tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
   table { border-collapse:collapse; width:100%; font-size:12.5px; }
@@ -87,6 +91,18 @@
   const lado = m => m > 0 ? 'Lula' : m < 0 ? 'Flávio' : 'Empate';
   const sum = (arr, k) => arr.reduce((s, x) => s + x[k], 0);
 
+  // Δ da fatia de Lula entre os finalistas: Lula ÷ (Lula + Flávio) no 2º turno − o mesmo no 1º turno (p.p.). Remove o efeito mecânico de os "outros" sumirem
+  M.forEach(m => { const a = m.L1 + m.F1, b = m.L2 + m.F2; m.ok = m.val1 > 0 && m.val2 > 0 && a > 0 && b > 0; m.dsh = m.ok ? (m.L2 / b - m.L1 / a) * 100 : 0; });
+  const REGIAO_DE = Object.fromEntries(P.ufs.map(u => [u.k, u.regiao]));
+  // Quantos municípios (e quanto do eleitorado válido) deslocaram o resultado a favor de Lula
+  function estatSwing(ms) {
+    const ok = ms.filter(m => m.ok), tv = sum(ok, 'val2');
+    const f = g => { const p = ok.filter(g); return { n: p.length, pn: ok.length ? p.length / ok.length * 100 : 0, pv: tv ? sum(p, 'val2') / tv * 100 : 0 }; };
+    return { total: ok.length, marg: f(m => m.swing > 0), fatia: f(m => m.dsh > 0) };
+  }
+  P.ufs.forEach(g => { g.pos = estatSwing(M.filter(m => m.uf === g.k)).marg.pn; });
+  P.regioes.forEach(g => { g.pos = estatSwing(M.filter(m => m.regiao === g.k)).marg.pn; });
+
   document.getElementById('fonte').textContent = `Fonte: TSE (portal de resultados). 1º turno ${P.meta.atualizado.t1} · 2º turno ${P.meta.atualizado.t2} (horário local, dado do portal). Conferir sempre no TSE.`;
   document.getElementById('rodape').textContent = `Dados gerados em ${new Date(P.meta.geradoEm).toLocaleString('pt-BR')}. Soma dos municípios confere com os totais do portal do TSE: ${P.meta.conferenciaOk ? 'sim' : 'NÃO'}. O exterior (186 localidades) entra nos totais e nas tabelas, mas não no mapa. Boa Esperança do Norte/MT não tem polígono na malha do IBGE usada.`;
 
@@ -94,14 +110,39 @@
   const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
   const rdbu = (v, lim) => d3.interpolateRdBu(clamp((lim - v) / (2 * lim))); // positivo (Lula) = vermelho; negativo (Flávio) = azul
   const dPart = m => (m.comp2 - m.comp1) / m.aptos * 100;
+  // Escala de cores: limites fixos (comparáveis entre recortes) ou ajustados ao recorte atual (percentil 98 dos municípios)
+  const LIM = { m2: [-60, 60], m1: [-60, 60], swing: [-20, 20], fatia: [-10, 10], part: [-2, 10] };
+  const valorModo = { m2: m => m.m2, m1: m => m.m1, swing: m => m.swing, fatia: m => m.dsh, part: dPart };
+  let escalaAuto = false, limAuto = {};
+  const lims = k => (escalaAuto && limAuto[k]) || LIM[k];
+  function calcEscala() {
+    limAuto = {};
+    const ms = M.filter(m => m.ok && m.uf !== 'zz' && noEscopo(m)); if (!ms.length) return; // o exterior não aparece no mapa
+    const pct = (arr, p) => arr[Math.min(arr.length - 1, Math.max(0, Math.floor(arr.length * p)))];
+    for (const k of ['m2', 'm1', 'swing', 'fatia']) {
+      const a = ms.map(m => Math.abs(valorModo[k](m))).sort((x, y) => x - y), passo = k === 'fatia' ? 1 : 5;
+      const l = Math.max(passo, Math.ceil(pct(a, .98) / passo) * passo); limAuto[k] = [-l, l];
+    }
+    const v = ms.map(dPart).sort((x, y) => x - y), lo = Math.floor(pct(v, .02)), hi = Math.max(lo + 1, Math.ceil(pct(v, .98)));
+    limAuto.part = [lo, hi];
+  }
+  // extremos reais do recorte (só municípios com ≥ 2 mil válidos, para não destacar cidades minúsculas)
+  function infoEscala() {
+    const f = valorModo[modo]; if (!f) return '';
+    const [lo, hi] = lims(modo), ms = M.filter(m => m.ok && m.uf !== 'zz' && m.val2 >= 2000 && noEscopo(m)); if (!ms.length) return '';
+    let mx = ms[0], mn = ms[0]; ms.forEach(m => { if (f(m) > f(mx)) mx = m; if (f(m) < f(mn)) mn = m; });
+    const fora = ms.filter(m => f(m) < lo || f(m) > hi).length, nm = m => `${esc(m.nome)}/${m.uf.toUpperCase()}`;
+    return `Extremos no recorte (municípios com ≥ 2 mil válidos): maior ${pp(f(mx))} em ${nm(mx)}; menor ${pp(f(mn))} em ${nm(mn)}. ${fora ? `${fora} de ${ms.length} municípios (${pc(fora / ms.length * 100, 0)}) ${fora === 1 ? 'passa' : 'passam'} dos limites da escala e ${fora === 1 ? 'aparece' : 'aparecem'} na cor máxima.` : 'Nenhum município passa dos limites da escala.'}`;
+  }
   const modos = {
-    m2: { nome: 'Margem 2º turno', cor: m => rdbu(m.m2, 60), leg: [-60, 60, 'Flávio', 'Lula', 'p.p. de margem (Lula − Flávio, % dos válidos)'], tip: m => `Margem: ${lado(m.m2)} ${pp(Math.abs(m.m2))}` },
-    m1: { nome: 'Margem 1º turno', cor: m => rdbu(m.m1, 60), leg: [-60, 60, 'Flávio', 'Lula', 'p.p. de margem (Lula − Flávio, % dos válidos)'], tip: m => `Margem 1º t.: ${lado(m.m1)} ${pp(Math.abs(m.m1))}` },
-    swing: { nome: 'Swing (2º − 1º)', cor: m => rdbu(m.swing, 20), leg: [-20, 20, 'Flávio', 'Lula', 'variação da margem entre turnos, p.p. (positivo = a favor de Lula)'], tip: m => `Swing: ${pp(m.swing)}` },
+    m2: { nome: 'Margem 2º turno', cor: m => rdbu(m.m2, lims('m2')[1]), get leg() { return [...lims('m2'), 'Flávio', 'Lula', 'p.p. de margem (Lula − Flávio, % dos válidos)']; }, tip: m => `Margem: ${lado(m.m2)} ${pp(Math.abs(m.m2))}` },
+    m1: { nome: 'Margem 1º turno', cor: m => rdbu(m.m1, lims('m1')[1]), get leg() { return [...lims('m1'), 'Flávio', 'Lula', 'p.p. de margem (Lula − Flávio, % dos válidos)']; }, tip: m => `Margem 1º t.: ${lado(m.m1)} ${pp(Math.abs(m.m1))}` },
+    swing: { nome: 'Swing (2º − 1º)', cor: m => rdbu(m.swing, lims('swing')[1]), get leg() { return [...lims('swing'), 'Flávio', 'Lula', 'variação da margem entre turnos, p.p. (positivo = a favor de Lula)']; }, tip: m => `Swing: ${pp(m.swing)}` },
+    fatia: { nome: 'Δ fatia de Lula (sem outros)', cor: m => rdbu(m.dsh, lims('fatia')[1]), get leg() { return [...lims('fatia'), 'Flávio', 'Lula', 'Δ da fatia de Lula entre os finalistas, p.p. (Lula ÷ (Lula + Flávio), 1º → 2º turno)']; }, tip: m => `Δ fatia de Lula: ${pp(m.dsh)}` },
     virada: { nome: 'Viradas', cor: m => m.virada === 'F>L' ? '#b71c1c' : m.virada === 'L>F' ? '#0d47a1' : (m.v2 === 'L' ? '#f3d2d2' : '#d0e0f3'), leg: null, tip: m => m.virada === 'F>L' ? 'VIROU: Flávio → Lula' : m.virada === 'L>F' ? 'VIROU: Lula → Flávio' : 'Manteve o líder' },
-    part: { nome: 'Comparecimento Δ', cor: m => d3.interpolateGreens(clamp((dPart(m) + 2) / 12)), leg: [-2, 10, '−2', '+10', 'variação do comparecimento, p.p. do eleitorado apto'], tip: m => `Comparecimento: ${pp(dPart(m))}` },
+    part: { nome: 'Comparecimento Δ', cor: m => { const [lo, hi] = lims('part'); return d3.interpolateGreens(clamp((dPart(m) - lo) / (hi - lo))); }, get leg() { const [lo, hi] = lims('part'); return [lo, hi, 'menos', 'mais', 'variação do comparecimento, p.p. do eleitorado apto']; }, tip: m => `Comparecimento: ${pp(dPart(m))}` },
   };
-  let modo = 'm2', selecionado = null;
+  let modo = 'm2', selecionado = null, ufSel = null, regSel = null;
 
   const svg = d3.select('#map'), gMapa = svg.append('g');
   const box = svg.node().getBoundingClientRect();
@@ -132,6 +173,7 @@
   svg.call(zoom);
 
   function pintar() {
+    calcEscala();
     paths.attr('fill', f => { const m = porIbge.get(f.properties.c); return m ? modos[modo].cor(m) : '#ccc'; })
          .classed('sel', f => selecionado && f.properties.c === selecionado.ibge)
          .attr('fill-opacity', camadaLocais ? 0.3 : 1);
@@ -139,11 +181,14 @@
     const L = document.getElementById('legenda'), c = modos[modo].leg;
     if (!c) L.innerHTML = '<span><b style="color:#b71c1c">■</b> virou Flávio → Lula</span><span><b style="color:#0d47a1">■</b> virou Lula → Flávio</span><span><b style="color:#f3d2d2">■</b> Lula nos dois</span><span><b style="color:#d0e0f3">■</b> Flávio nos dois</span>';
     else {
-      const stops = d3.range(0, 1.01, .1).map(t => modos[modo].cor({ m1: c[0] + (c[1] - c[0]) * t, m2: c[0] + (c[1] - c[0]) * t, swing: c[0] + (c[1] - c[0]) * t, comp1: 0, comp2: (c[0] + (c[1] - c[0]) * t) / 100, aptos: 1 }));
-      L.innerHTML = `<span>${c[2]}</span><span class="bar" style="background:linear-gradient(90deg,${stops.join(',')})"></span><span>${c[3]}</span><span>${c[4]}</span>`;
+      const stops = d3.range(0, 1.01, .1).map(t => modos[modo].cor({ m1: c[0] + (c[1] - c[0]) * t, m2: c[0] + (c[1] - c[0]) * t, swing: c[0] + (c[1] - c[0]) * t, dsh: c[0] + (c[1] - c[0]) * t, comp1: 0, comp2: (c[0] + (c[1] - c[0]) * t) / 100, aptos: 1 }));
+      const pos = v => ((v - c[0]) / (c[1] - c[0]) * 100).toFixed(1) + '%', rot = v => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toLocaleString('pt-BR');
+      const marcas = [c[0], ...(c[0] < 0 && c[1] > 0 ? [0] : []), c[1]].map((v, i, a) => `<span style="left:${pos(v)};${i === 0 ? 'transform:none' : i === a.length - 1 ? 'transform:translateX(-100%)' : ''}">${rot(v)}</span>`).join('');
+      L.innerHTML = `<span>${c[2]}</span><span class="escala"><span class="bar" style="background:linear-gradient(90deg,${stops.join(',')})"></span><span class="marcas">${marcas}</span></span><span>${c[3]}</span><span>${c[4]}</span>
+        <span class="aviso-escala" style="flex-basis:100%">${escalaAuto ? '<b>Escala ajustada ao recorte</b> (limites cobrem 98% dos municípios). ' : 'Escala fixa, comparável entre recortes. '}Valores além das pontas aparecem na cor máxima. ${infoEscala()}</span>`;
     }
     if (camadaLocais && LC) {
-      const precisaT2 = ['m2', 'swing', 'virada', 'part'].includes(modo) && !temT2;
+      const precisaT2 = ['m2', 'swing', 'fatia', 'virada', 'part'].includes(modo) && !temT2;
       L.innerHTML += `<span style="flex-basis:100%">${precisaT2 ? '<b>Locais de votação:</b> esta camada precisa do resultado do 2º turno por seção, que o TSE ainda não publicou (pontos em cinza).' : `Pontos = locais de votação (${LC.linhas.length.toLocaleString('pt-BR')}). Resultado por seção disponível: ${LC.turnos.map(t => t + 'º turno').join(' e ')}.`}</span>`;
     }
   }
@@ -157,11 +202,19 @@
     bl.onclick = () => { camadaLocais = !camadaLocais; bl.setAttribute('aria-pressed', camadaLocais); pintar(); };
     mo.appendChild(bl);
   }
-  const rz = document.createElement('button'); rz.textContent = 'Ver Brasil'; rz.onclick = () => setUF(null); mo.appendChild(rz);
+  const lbl = document.createElement('label'); lbl.title = 'Troca os limites fixos da escala pelos limites que cobrem 98% dos municípios do recorte atual';
+  lbl.innerHTML = '<input type="checkbox" id="escalaAuto"> Ajustar escala ao recorte'; lbl.querySelector('input').onchange = e => { escalaAuto = e.target.checked; pintar(); }; mo.appendChild(lbl);
+  const rz = document.createElement('button'); rz.textContent = 'Ver Brasil'; rz.onclick = () => { ufSel = null; regSel = null; aplicarEscopo(); }; mo.appendChild(rz);
   const UFNOME = { ac: 'Acre', al: 'Alagoas', ap: 'Amapá', am: 'Amazonas', ba: 'Bahia', ce: 'Ceará', df: 'Distrito Federal', es: 'Espírito Santo', go: 'Goiás', ma: 'Maranhão', mt: 'Mato Grosso', ms: 'Mato Grosso do Sul', mg: 'Minas Gerais', pa: 'Pará', pb: 'Paraíba', pr: 'Paraná', pe: 'Pernambuco', pi: 'Piauí', rj: 'Rio de Janeiro', rn: 'Rio Grande do Norte', rs: 'Rio Grande do Sul', ro: 'Rondônia', rr: 'Roraima', sc: 'Santa Catarina', sp: 'São Paulo', se: 'Sergipe', to: 'Tocantins', zz: 'Exterior' };
+  const REGIOES = ['Norte', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul'];
+  const selReg = document.createElement('select'); selReg.id = 'selReg'; selReg.setAttribute('aria-label', 'Analisar uma região');
+  selReg.innerHTML = '<option value="">Região: todas</option>' + REGIOES.map(r => `<option value="${r}">${r}</option>`).join('');
+  selReg.onchange = () => { if (selReg.value) setRegiao(selReg.value); else { ufSel = null; regSel = null; aplicarEscopo(); } };
+  mo.appendChild(selReg);
   const selUF = document.createElement('select'); selUF.id = 'selUF'; selUF.setAttribute('aria-label', 'Analisar um estado');
-  selUF.innerHTML = '<option value="">Estado: todos</option>' + Object.entries(UFNOME).filter(([k]) => k !== 'zz').map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
   selUF.onchange = () => setUF(selUF.value || null); mo.appendChild(selUF);
+  const opcoesUF = () => '<option value="">Estado: todos</option>' + Object.entries(UFNOME).filter(([k]) => k !== 'zz' && (!regSel || REGIAO_DE[k] === regSel)).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+  selUF.innerHTML = opcoesUF();
 
   function zoomCaixa(x0, y0, x1, y1, kMax) {
     const k = Math.min(kMax, .9 / Math.max((x1 - x0) / W, (y1 - y0) / H, 1e-6));
@@ -172,15 +225,21 @@
     const [[x0, y0], [x1, y1]] = path.bounds({ type: 'FeatureCollection', features: fs });
     zoomCaixa(x0, y0, x1, y1, 40);
   }
-  // Analisar um estado: mostra só os municípios dele, ajusta o zoom e abre a aba Estado
-  let ufSel = null;
-  function setUF(uf) {
-    ufSel = uf; selUF.value = uf || '';
-    paths.style('display', f => { const m = porIbge.get(f.properties.c); return !ufSel || (m && m.uf === ufSel) ? null : 'none'; });
-    if (uf && feats.some(f => porIbge.get(f.properties.c)?.uf === uf)) zoomUF(uf); else svg.transition().duration(500).call(zoom.transform, d3.zoomIdentity);
-    if (selecionado && uf && selecionado.uf !== uf) selecionado = null;
-    aba = uf ? 'estado' : 'brasil'; render(); pintar();
+  // Escopo da análise: Brasil, uma região ou um estado (o estado pertence sempre a uma região).
+  // O mapa mostra só os municípios do escopo, com zoom ajustado, e a aba "Região / Estado" analisa o recorte.
+  const noEscopo = m => (!ufSel || m.uf === ufSel) && (!regSel || m.regiao === regSel);
+  function aplicarEscopo() {
+    paths.style('display', f => { if (!ufSel && !regSel) return null; const m = porIbge.get(f.properties.c); return m && noEscopo(m) ? null : 'none'; });
+    const fs = feats.filter(f => { const m = porIbge.get(f.properties.c); return m && noEscopo(m); });
+    if ((ufSel || regSel) && fs.length) { const [[x0, y0], [x1, y1]] = path.bounds({ type: 'FeatureCollection', features: fs }); zoomCaixa(x0, y0, x1, y1, 40); }
+    else svg.transition().duration(500).call(zoom.transform, d3.zoomIdentity);
+    selReg.value = regSel && REGIOES.includes(regSel) ? regSel : '';
+    selUF.innerHTML = opcoesUF(); selUF.value = ufSel || '';
+    if (selecionado && !noEscopo(selecionado)) selecionado = null;
+    aba = ufSel || regSel ? 'estado' : 'brasil'; render(); pintar();
   }
+  function setUF(uf) { ufSel = uf; if (uf) regSel = REGIAO_DE[uf] ?? null; aplicarEscopo(); }
+  function setRegiao(r) { regSel = r; ufSel = null; aplicarEscopo(); }
   function zoomMun(m) {
     const f = m.ibge && feats.find(x => x.properties.c === m.ibge); if (!f) return zoomUF(m.uf);
     const [[x0, y0], [x1, y1]] = path.bounds(f); zoomCaixa(x0, y0, x1, y1, 40);
@@ -210,6 +269,7 @@
       case 'm1': return mg(t1);
       case 'm2': return mg(t2);
       case 'swing': return t1 && t2 ? mg(t2) - mg(t1) : null;
+      case 'fatia': return t1 && t2 && t1[2] + t1[3] && t2[2] + t2[3] ? (t2[2] / (t2[2] + t2[3]) - t1[2] / (t1[2] + t1[3])) * 100 : null;
       case 'virada': { if (!t1 || !t2) return null; const a = Math.sign(mg(t1)), b = Math.sign(mg(t2)); return a && b && a !== b ? (b > 0 ? 'F>L' : 'L>F') : (b > 0 ? 'L' : 'F'); }
       case 'part': return t1 && t2 && t1[0] ? (t2[1] - t1[1]) / t1[0] * 100 : null;
     }
@@ -217,7 +277,7 @@
   function recolorirLocais() {
     if (!LC) return;
     const leg = modos[modo].leg;
-    paleta = leg ? d3.range(41).map(b => { const v = leg[0] + (leg[1] - leg[0]) * b / 40; return modos[modo].cor({ m1: v, m2: v, swing: v, comp1: 0, comp2: v / 100, aptos: 1 }); }) : ['#b71c1c', '#0d47a1', '#f3d2d2', '#d0e0f3'];
+    paleta = leg ? d3.range(41).map(b => { const v = leg[0] + (leg[1] - leg[0]) * b / 40; return modos[modo].cor({ m1: v, m2: v, swing: v, dsh: v, comp1: 0, comp2: v / 100, aptos: 1 }); }) : ['#b71c1c', '#0d47a1', '#f3d2d2', '#d0e0f3'];
     for (const i of idxOk) {
       const v = valorLocal(LC.linhas[i]);
       bins[i] = v == null ? 255 : !leg ? ({ 'F>L': 0, 'L>F': 1, L: 2, F: 3 })[v] : Math.max(0, Math.min(40, Math.round((v - leg[0]) / (leg[1] - leg[0]) * 40)));
@@ -261,7 +321,7 @@
   }
 
   // ---------- Painel lateral ----------
-  const abas = { brasil: 'Brasil', estado: 'Estado', regioes: 'Regiões e UFs', ranking: 'Rankings', mun: 'Município', ...(LC ? { bairros: 'Bairros', local: 'Local' } : {}) };
+  const abas = { brasil: 'Brasil', estado: 'Região / Estado', regioes: 'Regiões e UFs', ranking: 'Rankings', mun: 'Município', ...(LC ? { bairros: 'Bairros', local: 'Local' } : {}) };
   let aba = 'brasil', rank = 'viradas', ordUF = 'swing', ordDir = -1, busca = '';
   const ab = document.getElementById('abas'), pn = document.getElementById('painel');
   Object.entries(abas).forEach(([k, v]) => { const b = document.createElement('button'); b.textContent = v; b.dataset.k = k; b.onclick = () => { aba = k; render(); }; ab.appendChild(b); });
@@ -286,6 +346,10 @@
     </tbody></table>
     <div class="note">Conta de saldo entre os turnos. O voto é secreto: não dá para saber quem votou em quem (risco de falácia ecológica). Parcelas negativas indicam queda.</div>`;
   }
+  function kpiSwing(ms) {
+    const e = estatSwing(ms); if (!e.total) return '';
+    return `<div class="kpi" style="grid-column:1/-1"><b>${pc(e.marg.pn, 0)} dos municípios <small>(${fmt(e.marg.n)} de ${fmt(e.total)})</small></b><span>deslocaram a margem a favor de Lula (swing positivo) e concentram ${pc(e.marg.pv, 1)} dos votos válidos. Sem o efeito dos outros candidatos (Δ fatia de Lula): ${fmt(e.fatia.n)} municípios (${pc(e.fatia.pn, 0)}), ${pc(e.fatia.pv, 1)} dos votos válidos. Só municípios com votos nos dois turnos.</span></div>`;
+  }
   const tot = (arr) => { const o = {}; ['aptos','comp1','comp2','val1','val2','bn1','bn2','L1','F1','O1','L2','F2'].forEach(k => o[k] = sum(arr, k)); o.m1 = (o.L1 - o.F1) / o.val1 * 100; o.m2 = (o.L2 - o.F2) / o.val2 * 100; o.swing = o.m2 - o.m1; return o; };
 
   function viewBrasil() {
@@ -296,6 +360,7 @@
       <div class="kpi"><b>${pp(t.swing, 2)}</b><span>swing da margem (Lula)</span></div>
       <div class="kpi"><b>${v.length}</b><span>municípios viraram (${v.filter(x => x.virada === 'F>L').length} p/ Lula, ${v.filter(x => x.virada === 'L>F').length} p/ Flávio)</span></div>
       <div class="kpi"><b>${pc((1 - t.comp1 / t.aptos) * 100, 2)} → ${pc((1 - t.comp2 / t.aptos) * 100, 2)}</b><span>abstenção</span></div>
+      ${kpiSwing(M)}
     </div>
     <div class="stack"><div style="width:${t.L1 / t.val1 * 100}%;background:var(--lula)"></div><div style="width:${t.O1 / t.val1 * 100}%;background:#9aa6b5"></div><div style="width:${t.F1 / t.val1 * 100}%;background:var(--flavio)"></div></div>
     <div class="note">1º turno: Lula ${pc(t.L1 / t.val1 * 100, 2)} · outros ${pc(t.O1 / t.val1 * 100, 2)} · Flávio ${pc(t.F1 / t.val1 * 100, 2)}</div>
@@ -305,13 +370,13 @@
   }
 
   function tabelaGrupo(rows, titulo, clicavel) {
-    const cols = [['k', titulo], ['swing', 'Swing'], ['m2', 'Margem 2º'], ['dL', 'Δ Lula'], ['dF', 'Δ Flávio'], ['dPart', 'Δ comp. pp'], ['viradas', 'Viradas']];
+    const cols = [['k', titulo], ['swing', 'Swing'], ['pos', 'Mun. c/ swing +'], ['m2', 'Margem 2º'], ['dL', 'Δ Lula'], ['dF', 'Δ Flávio'], ['dPart', 'Δ comp. pp'], ['viradas', 'Viradas']];
     const r = rows.map(g => ({ ...g, dL: g.L2 - g.L1, dF: g.F2 - g.F1, dPart: (g.comp2 - g.comp1) / g.aptos * 100 }));
     r.sort((a, b) => ordDir * ((typeof a[ordUF] === 'string') ? a[ordUF].localeCompare(b[ordUF]) : a[ordUF] - b[ordUF]));
     return `<table><thead><tr>${cols.map(c => `<th data-o="${c[0]}">${c[1]}${ordUF === c[0] ? (ordDir > 0 ? ' ▲' : ' ▼') : ''}</th>`).join('')}</tr></thead><tbody>
-      ${r.map(g => `<tr ${clicavel ? `data-uf="${g.k}"` : ''}><td>${esc(g.k.length === 2 ? g.k.toUpperCase() : g.k)}</td><td>${pp(g.swing)}</td><td class="${g.m2 > 0 ? 'L' : 'F'}">${pp(g.m2)}</td><td>${fmt(g.dL)}</td><td>${fmt(g.dF)}</td><td>${pp(g.dPart)}</td><td>${g.viradas ?? ''}</td></tr>`).join('')}</tbody></table>`;
+      ${r.map(g => `<tr ${clicavel && g.k !== 'Exterior' ? `data-${clicavel}="${g.k}"` : ''}><td>${esc(g.k.length === 2 ? g.k.toUpperCase() : g.k)}</td><td>${pp(g.swing)}</td><td>${g.pos == null ? '–' : pc(g.pos, 0)}</td><td class="${g.m2 > 0 ? 'L' : 'F'}">${pp(g.m2)}</td><td>${fmt(g.dL)}</td><td>${fmt(g.dF)}</td><td>${pp(g.dPart)}</td><td>${g.viradas ?? ''}</td></tr>`).join('')}</tbody></table>`;
   }
-  function viewRegioes() { return `<h3>Regiões</h3>${tabelaGrupo(P.regioes, 'Região', false)}<h3>UFs <small>(clique para dar zoom)</small></h3><div class="scroll">${tabelaGrupo(P.ufs, 'UF', true)}</div><div class="note">Swing e margem em p.p. de (Lula − Flávio) sobre os votos válidos. Δ = 2º turno − 1º turno.</div>`; }
+  function viewRegioes() { return `<h3>Regiões <small>(clique para analisar)</small></h3>${tabelaGrupo(P.regioes, 'Região', 'reg')}<h3>UFs <small>(clique para analisar)</small></h3><div class="scroll">${tabelaGrupo(P.ufs, 'UF', 'uf')}</div><div class="note">Swing e margem em p.p. de (Lula − Flávio) sobre os votos válidos. Δ = 2º turno − 1º turno. "Mun. c/ swing +" = % dos municípios com a margem deslocada a favor de Lula.</div>`; }
 
   const rankings = {
     viradas: ['Viradas (por votos válidos)', () => M.filter(m => m.virada).sort((a, b) => b.val2 - a.val2)],
@@ -324,7 +389,7 @@
     const lista = rankings[rank][1]().filter(m => !busca || (m.nome + ' ' + m.uf).toLowerCase().includes(busca.toLowerCase())).slice(0, 80);
     return `<select id="selRank">${Object.entries(rankings).map(([k, v]) => `<option value="${k}" ${k === rank ? 'selected' : ''}>${v[0]}</option>`).join('')}</select>
     <input type="search" id="busca" placeholder="Filtrar por nome ou UF…" value="${esc(busca)}" style="margin-top:6px">
-    <div class="scroll"><table><thead><tr><th>Município</th><th>Margem 1º</th><th>Margem 2º</th><th>Swing</th><th>Válidos</th></tr></thead><tbody>
+    <div class="scroll"><table><thead><tr><th>Município</th><th>Margem 1º</th><th>Margem 2º</th><th>Swing</th><th title="Votos válidos do 2º turno: votos em Lula ou Flávio (sem brancos, nulos e abstenções)">Válidos 2º t.</th></tr></thead><tbody>
     ${lista.map(m => `<tr data-i="${m.uf}${m.tse}"><td>${esc(m.nome)}/${m.uf.toUpperCase()}${m.virada ? ' ⇄' : ''}</td><td class="${m.m1 > 0 ? 'L' : 'F'}">${pp(m.m1)}</td><td class="${m.m2 > 0 ? 'L' : 'F'}">${pp(m.m2)}</td><td>${pp(m.swing)}</td><td>${fmt(m.val2)}</td></tr>`).join('')}</tbody></table></div>
     <div class="note">⇄ = mudou o líder entre os turnos. Mostra até 80 linhas.</div>`;
   }
@@ -341,7 +406,8 @@
       ${linhaT('Brancos + nulos', fmt(m.bn1), fmt(m.bn2), fmt(m.bn2 - m.bn1))}
       ${linhaT('Comparecimento', fmt(m.comp1), fmt(m.comp2), fmt(m.comp2 - m.comp1))}
       ${linhaT('Aptos', fmt(m.aptos), fmt(m.aptos), '')}
-      ${linhaT('Margem (L − F)', pp(m.m1), pp(m.m2), pp(m.swing))}
+      ${linhaT('Margem (L − F)', pp(m.m1), pp(m.m2), pp(m.swing) + ' (swing)')}
+      ${m.ok ? linhaT('Fatia de Lula entre os finalistas', pc(m.L1 / (m.L1 + m.F1) * 100), pc(m.L2 / (m.L2 + m.F2) * 100), pp(m.dsh)) : ''}
     </tbody></table>${blocoDecomp(m)}`;
   }
 
@@ -391,15 +457,18 @@
     viradas: ['Municípios que viraram (por votos válidos)', ms => ms.filter(m => m.virada).sort((a, b) => b.val2 - a.val2)],
     swingL: ['Maior swing pró-Lula (≥ 2 mil válidos)', ms => ms.filter(m => m.val2 >= 2000).sort((a, b) => b.swing - a.swing)],
     swingF: ['Maior swing pró-Flávio (≥ 2 mil válidos)', ms => ms.filter(m => m.val2 >= 2000).sort((a, b) => a.swing - b.swing)],
+    fatiaL: ['Maior Δ fatia de Lula (≥ 2 mil válidos)', ms => ms.filter(m => m.ok && m.val2 >= 2000).sort((a, b) => b.dsh - a.dsh)],
+    fatiaF: ['Menor Δ fatia de Lula, pró-Flávio (≥ 2 mil válidos)', ms => ms.filter(m => m.ok && m.val2 >= 2000).sort((a, b) => a.dsh - b.dsh)],
     apertadas: ['Mais apertados no 2º turno (≥ 2 mil válidos)', ms => ms.filter(m => m.val2 >= 2000).sort((a, b) => Math.abs(a.m2) - Math.abs(b.m2))],
     maiores: ['Maiores municípios (votos válidos)', ms => [...ms].sort((a, b) => b.val2 - a.val2)],
   };
   function viewEstado() {
-    if (!ufSel) return '<p>Escolha um estado no seletor acima do mapa (ou clique em uma UF na aba Regiões e UFs) para analisá-lo.</p>';
-    const uf = ufSel, ms = M.filter(m => m.uf === uf), t = tot(ms), nac = tot(M), v = ms.filter(m => m.virada);
-    const nomeUF = UFNOME[uf] ?? uf.toUpperCase();
+    if (!ufSel && !regSel) return '<p>Escolha uma região ou um estado nos seletores acima do mapa (ou clique em uma linha da aba Regiões e UFs) para analisá-lo.</p>';
+    const uf = ufSel, ms = M.filter(noEscopo), t = tot(ms), nac = tot(M), v = ms.filter(m => m.virada);
+    const nomeEscopo = uf ? (UFNOME[uf] ?? uf.toUpperCase()) : `Região ${regSel}`;
     const lista = rankUFs[rankUF][1](ms).slice(0, 60);
-    return `<h3 style="margin-top:0">${esc(nomeUF)} <small>(${ms.length.toLocaleString('pt-BR')} ${uf === 'zz' ? 'localidades' : 'municípios'})</small></h3>
+    const ufsRegiao = !uf && regSel ? P.ufs.filter(u => u.regiao === regSel) : [];
+    return `<h3 style="margin-top:0">${esc(nomeEscopo)} <small>(${ms.length.toLocaleString('pt-BR')} ${uf === 'zz' || regSel === 'Exterior' ? 'localidades' : 'municípios'}${uf ? ` · Região ${esc(REGIAO_DE[uf] ?? '')}` : ''})</small></h3>
     <div class="kpis">
       <div class="kpi"><b class="L">${pc(t.L2 / t.val2 * 100, 2)}</b><span>Lula 2º t. (${mi(t.L2)})</span></div>
       <div class="kpi"><b class="F">${pc(t.F2 / t.val2 * 100, 2)}</b><span>Flávio 2º t. (${mi(t.F2)})</span></div>
@@ -407,16 +476,18 @@
       <div class="kpi"><b>${v.length}</b><span>municípios viraram (${v.filter(x => x.virada === 'F>L').length} p/ Lula, ${v.filter(x => x.virada === 'L>F').length} p/ Flávio)</span></div>
       <div class="kpi"><b>${pc((1 - t.comp1 / t.aptos) * 100, 1)} → ${pc((1 - t.comp2 / t.aptos) * 100, 1)}</b><span>abstenção (Brasil: ${pc((1 - nac.comp1 / nac.aptos) * 100, 1)} → ${pc((1 - nac.comp2 / nac.aptos) * 100, 1)})</span></div>
       <div class="kpi"><b class="${t.m1 > 0 ? 'L' : 'F'}">${pp(t.m1)} → ${pp(t.m2)}</b><span>margem 1º → 2º turno (L − F)</span></div>
+      ${kpiSwing(ms)}
     </div>
     ${blocoDecomp(t)}
+    ${ufsRegiao.length ? `<h3>Estados da região <small>(clique para analisar)</small></h3>${tabelaGrupo(ufsRegiao, 'UF', 'uf')}` : ''}
     <h3>Municípios</h3>
     <select id="selRankUF">${Object.entries(rankUFs).map(([k, r]) => `<option value="${k}" ${k === rankUF ? 'selected' : ''}>${r[0]}</option>`).join('')}</select>
-    <div class="scroll" style="margin-top:6px"><table><thead><tr><th>Município</th><th>Margem 1º</th><th>Margem 2º</th><th>Swing</th><th>Válidos</th></tr></thead><tbody>
-    ${lista.map(m => `<tr data-i="${m.uf}${m.tse}"><td>${esc(m.nome)}${m.virada ? ' ⇄' : ''}</td><td class="${m.m1 > 0 ? 'L' : 'F'}">${pp(m.m1)}</td><td class="${m.m2 > 0 ? 'L' : 'F'}">${pp(m.m2)}</td><td>${pp(m.swing)}</td><td>${fmt(m.val2)}</td></tr>`).join('') || '<tr><td colspan="5">Nenhum município nesta lista.</td></tr>'}</tbody></table></div>
+    <div class="scroll" style="margin-top:6px"><table><thead><tr><th>Município</th><th>Margem 1º</th><th>Margem 2º</th><th>Swing</th><th>Δ fatia</th><th title="Votos válidos do 2º turno: votos em Lula ou Flávio (sem brancos, nulos e abstenções)">Válidos 2º t.</th></tr></thead><tbody>
+    ${lista.map(m => `<tr data-i="${m.uf}${m.tse}"><td>${esc(m.nome)}${uf ? '' : '/' + m.uf.toUpperCase()}${m.virada ? ' ⇄' : ''}</td><td class="${m.m1 > 0 ? 'L' : 'F'}">${pp(m.m1)}</td><td class="${m.m2 > 0 ? 'L' : 'F'}">${pp(m.m2)}</td><td>${pp(m.swing)}</td><td>${m.ok ? pp(m.dsh) : '–'}</td><td>${fmt(m.val2)}</td></tr>`).join('') || '<tr><td colspan="6">Nenhum município nesta lista.</td></tr>'}</tbody></table></div>
     <div class="note">⇄ = mudou o líder entre os turnos. Mostra até 60 linhas. Clique em um município para ver o detalhe.</div>`;
   }
 
-  function selecionar(m) { if (ufSel && m.uf !== ufSel) setUF(m.uf); selecionado = m; aba = 'mun'; render(); pintar(); zoomMun(m); }
+  function selecionar(m) { if (!noEscopo(m)) setUF(m.uf); selecionado = m; aba = 'mun'; render(); pintar(); zoomMun(m); }
 
   function render() {
     [...ab.children].forEach(b => b.setAttribute('aria-pressed', b.dataset.k === aba));
@@ -424,6 +495,7 @@
       '<div class="warn">Dados do portal do TSE; podem estar desatualizados ou conter erros. Para reporte, precificação ou decisão, conferir na fonte oficial (resultados.tse.jus.br).</div>';
     pn.querySelectorAll('th[data-o]').forEach(th => th.onclick = () => { const o = th.dataset.o; ordDir = ordUF === o ? -ordDir : -1; ordUF = o; render(); });
     pn.querySelectorAll('tr[data-uf]').forEach(tr => tr.onclick = () => setUF(tr.dataset.uf));
+    pn.querySelectorAll('tr[data-reg]').forEach(tr => tr.onclick = () => setRegiao(tr.dataset.reg));
     const sr = pn.querySelector('#selRankUF'); if (sr) sr.onchange = () => { rankUF = sr.value; render(); };
     pn.querySelectorAll('tr[data-bi]').forEach(tr => tr.onclick = () => zoomIndices(bairrosAtuais[+tr.dataset.bi].is));
     pn.querySelectorAll('tr[data-i]').forEach(tr => tr.onclick = () => selecionar(M.find(m => m.uf + m.tse === tr.dataset.i)));

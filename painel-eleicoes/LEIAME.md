@@ -10,7 +10,9 @@ node painel-eleicoes/scripts/servir.mjs
 
 Abrir http://localhost:8765 (não abre direto pelo arquivo, por causa dos dados em `dados/`).
 
-- **Análise por estado:** escolha o estado no seletor acima do mapa (ou clique numa UF em "Regiões e UFs"). O mapa mostra só aquele estado, e a aba **Estado** traz KPIs, decomposição dos votos a mais e rankings de municípios. "Ver Brasil" volta à visão nacional.
+- **Análise por região ou estado:** escolha a região e/ou o estado nos seletores acima do mapa (ou clique numa linha em "Regiões e UFs"). O mapa mostra só aquele recorte, e a aba **Região / Estado** traz KPIs, decomposição dos votos a mais, a tabela de estados da região e rankings de municípios. "Ver Brasil" volta à visão nacional.
+- **Legenda:** mostra os números das pontas (−60/0/+60 etc.), avisa que a cor satura além deles e traz os extremos reais do recorte (municípios com ≥ 2 mil válidos) e quantos municípios passam dos limites. A caixa "Ajustar escala ao recorte" troca os limites fixos (comparáveis entre recortes) por limites que cobrem 98% dos municípios do recorte atual.
+- **Swing e Δ fatia:** swing = margem do 2º turno − margem do 1º (Lula − Flávio, p.p. dos válidos). Ele inclui um efeito mecânico (os "outros" do 1º turno somem e ampliam qualquer vantagem que já existia). A camada **Δ fatia de Lula (sem outros)** compara Lula ÷ (Lula + Flávio) nos dois turnos e remove esse efeito. Os quadros mostram quantos municípios (e que % dos votos válidos) se deslocaram a favor de Lula, nas duas medidas.
 - **Nível padrão: município.** A camada de locais de votação e as abas Bairros/Local só carregam com `http://localhost:8765/?locais=1` (precisa do passo 3 abaixo; são 11 MB e dificultam a leitura das viradas).
 
 ## Gerar os dados (a pasta `dados/` não é versionada)
