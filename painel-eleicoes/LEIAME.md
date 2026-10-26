@@ -15,6 +15,10 @@ Abrir http://localhost:8765 (não abre direto pelo arquivo, por causa dos dados 
 - **Swing e Δ fatia:** swing = margem do 2º turno − margem do 1º (Lula − Flávio, p.p. dos válidos). Ele inclui um efeito mecânico (os "outros" do 1º turno somem e ampliam qualquer vantagem que já existia). A camada **Δ fatia de Lula (sem outros)** compara Lula ÷ (Lula + Flávio) nos dois turnos e remove esse efeito. Os quadros mostram quantos municípios (e que % dos votos válidos) se deslocaram a favor de Lula, nas duas medidas.
 - **Nível padrão: município.** A camada de locais de votação e as abas Bairros/Local só carregam com `http://localhost:8765/?locais=1` (precisa do passo 3 abaixo; são 11 MB e dificultam a leitura das viradas).
 
+## Identidade visual
+
+Cabeçalho verde (`0A2824`) com o logo Portofino em branco (`assets/portofino-logo-branco.png`), botões e abas na paleta do template corporativo (`0A413B`, `158775`, `05C18B`) e fonte Montserrat. O mapa mantém vermelho (Lula) e azul (Flávio), que são cores de leitura do resultado. O logo foi recortado do slide de encerramento do template `pmfo-apresentacao.potx` (skill `templates-pmfo`) e o fundo verde foi convertido em transparência, sem alterar o desenho. A Montserrat só aparece se estiver instalada no computador; sem ela, o navegador usa Segoe UI.
+
 ## Gerar os dados (a pasta `dados/` não é versionada)
 
 | Passo | Comando | O que faz |

@@ -12,7 +12,9 @@ const ler = (...p) => readFile(path.join(RAIZ, ...p), 'utf8');
 const inline = (js) => `<script>\n${js.replace(/<\/script/gi, '<\\/script')}\n</script>`;
 
 let html = await ler('index.html');
+const logo = (await readFile(path.join(RAIZ, 'assets', 'portofino-logo-branco.png'))).toString('base64');
 const trocas = [
+  [/src="assets\/portofino-logo-branco\.png"/, `src="data:image/png;base64,${logo}"`], // logo embutido
   [/<script src="https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/d3\/7\.9\.0\/d3\.min\.js"><\/script>/, inline(await ler('dados', 'vendor', 'd3-7.9.0', 'd3.min.js'))],
   [/<script src="dados\/painel\.js"><\/script>/, inline(await ler('dados', 'painel.js'))],
   [/<script src="dados\/malha\.js"><\/script>/, inline(await ler('dados', 'malha.js'))],
@@ -23,6 +25,7 @@ for (const [padrao, novo] of trocas) {
   html = html.replace(padrao, () => novo); // função: evita interpretar "$" no texto inserido
 }
 if (/<script[^>]+src=/i.test(html)) throw new Error('ainda há <script src=...> externo no pacote');
+if (/<img[^>]+src="(?!data:)/i.test(html)) throw new Error('ainda há <img src=...> externo no pacote');
 
 const saida = path.join(RAIZ, 'dist', 'painel-eleicoes-2026.html');
 await mkdir(path.dirname(saida), { recursive: true });

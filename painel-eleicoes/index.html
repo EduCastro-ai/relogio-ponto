@@ -5,24 +5,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Painel Eleições 2026</title>
 <style>
+  /* Identidade Portofino (tema do template corporativo): Montserrat; verdes 0A2824 / 0A413B / 158775 / 05C18B.
+     O mapa mantém vermelho (Lula) e azul (Flávio): são cores de leitura do resultado, não de marca. */
   :root {
     --bg:#f6f7f9; --card:#fff; --ink:#1b2430; --mut:#5d6877; --line:#dde2e9;
-    --lula:#c62828; --flavio:#1565c0; --acc:#1b2430;
+    --lula:#c62828; --flavio:#1565c0; --acc:#0A413B; --acc-ink:#fff; --info:#158775; --hdr:#0A2824;
   }
   @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) { --bg:#0f141b; --card:#171e28; --ink:#e8edf3; --mut:#9aa6b5; --line:#2b3441; --acc:#e8edf3; }
+    :root:not([data-theme="light"]) { --bg:#0f141b; --card:#171e28; --ink:#e8edf3; --mut:#9aa6b5; --line:#2b3441; --acc:#158775; --acc-ink:#fff; --info:#3ABAA4; }
   }
   * { box-sizing:border-box; }
-  body { margin:0; font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--bg); color:var(--ink); }
-  header { padding:14px 16px 10px; display:flex; flex-wrap:wrap; gap:6px 18px; align-items:baseline; border-bottom:1px solid var(--line); background:var(--card); }
-  header h1 { font-size:18px; margin:0; }
-  header small { color:var(--mut); }
+  body { margin:0; font:14px/1.45 Montserrat,"Segoe UI",system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--ink); }
+  header { padding:10px 16px; display:flex; flex-wrap:wrap; gap:6px 18px; align-items:center; background:var(--hdr); color:#fff; border-bottom:3px solid #05C18B; }
+  header .logo { height:42px; width:auto; display:block; }
+  header .titulo { display:flex; flex-direction:column; gap:2px; min-width:0; }
+  header h1 { font-size:17px; font-weight:600; margin:0; letter-spacing:.2px; }
+  header small { color:#ABC997; font-size:11px; }
   main { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(340px,1fr); gap:12px; padding:12px 16px; }
   @media (max-width:900px) { main { grid-template-columns:1fr; } }
   .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; min-width:0; }
   .controls { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; }
   .controls button, .tabs button, select { font:inherit; color:var(--ink); background:var(--card); border:1px solid var(--line); border-radius:6px; padding:5px 10px; cursor:pointer; }
-  .controls button[aria-pressed="true"], .tabs button[aria-pressed="true"] { background:var(--acc); color:var(--bg); border-color:var(--acc); }
+  .controls button[aria-pressed="true"], .tabs button[aria-pressed="true"] { background:var(--acc); color:var(--acc-ink); border-color:var(--acc); }
   #map { width:100%; height:auto; aspect-ratio:4/3; max-height:80vh; display:block; background:transparent; touch-action:none; }
   #mapbox { position:relative; }
   #mapbox canvas { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
@@ -35,9 +39,10 @@
   .legend .aviso-escala { line-height:1.4; }
   .controls label { display:flex; align-items:center; gap:5px; font-size:12px; color:var(--mut); cursor:pointer; }
   #ajuda { position:fixed; pointer-events:none; display:none; z-index:10; max-width:330px; background:var(--card); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:12px; line-height:1.45; white-space:pre-line; box-shadow:0 4px 14px rgba(0,0,0,.2); text-align:left; font-weight:400; }
-  th[data-info]::after, td[data-info]::after, span[data-info]::after { content:' ⓘ'; color:var(--mut); font-size:.85em; }
-  .kpi[data-info]::after { content:'ⓘ'; float:right; color:var(--mut); font-size:.85em; }
-  .legend .i { cursor:help; color:var(--mut); }
+  th[data-info]::after, td[data-info]::after, span[data-info]::after { content:' ⓘ'; color:var(--info); font-size:1.15em; font-weight:700; }
+  .kpi[data-info] { position:relative; padding-right:24px; }
+  .kpi[data-info]::after { content:'ⓘ'; position:absolute; top:5px; right:7px; color:var(--info); font-size:15px; font-weight:700; }
+  .legend .i { cursor:help; color:var(--info); font-size:15px; font-weight:700; }
   .legend .i::after { content:none; }
   [data-info] { cursor:help; }
   button[data-info]::after { content:none; }
@@ -65,8 +70,11 @@
 </head>
 <body>
 <header>
-  <h1>Eleições 2026 · Presidente · 1º × 2º turno</h1>
-  <small id="fonte"></small>
+  <img class="logo" src="assets/portofino-logo-branco.png" alt="Portofino Multi Family Office">
+  <div class="titulo">
+    <h1>Eleições 2026 · Presidente · 1º × 2º turno</h1>
+    <small id="fonte"></small>
+  </div>
 </header>
 <main>
   <section class="card">
