@@ -23,7 +23,7 @@
   .controls { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; }
   .controls button, .tabs button, select { font:inherit; color:var(--ink); background:var(--card); border:1px solid var(--line); border-radius:6px; padding:5px 10px; cursor:pointer; }
   .controls button[aria-pressed="true"], .tabs button[aria-pressed="true"] { background:var(--acc); color:var(--bg); border-color:var(--acc); }
-  #map { width:100%; height:min(72vh,700px); display:block; background:transparent; touch-action:none; }
+  #map { width:100%; height:auto; aspect-ratio:4/3; max-height:80vh; display:block; background:transparent; touch-action:none; }
   #mapbox { position:relative; }
   #mapbox canvas { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
   #map path { stroke:rgba(0,0,0,.18); stroke-width:.3; vector-effect:non-scaling-stroke; }
@@ -74,7 +74,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="dados/painel.js"></script>
 <script src="dados/malha.js"></script>
-<script src="dados/locais.js"></script>
+<script>if (location.search.includes('locais')) document.write('<script src="dados/locais.js"><\/script>'); // camada de locais de votação: opcional (?locais=1), 11 MB</script>
 <script>
 (() => {
   const P = window.PAINEL, G = window.MALHA, LC = window.LOCAIS;
@@ -109,7 +109,9 @@
   const merc = (lon, lat) => [lon * Math.PI / 180, -Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360))];
   const plano = (k, tx, ty) => d3.geoTransform({ point(x, y) { const p = merc(x, y); this.stream.point(p[0] * k + tx, p[1] * k + ty); } });
   const [[bx0, by0], [bx1, by1]] = d3.geoPath(plano(1, 0, 0)).bounds(G);
-  const W = box.width || 800, H = box.height || 600, kk = Math.min(W / (bx1 - bx0), H / (by1 - by0)) * 0.97;
+  const W = 800, H = 600; // área de desenho fixa (viewBox): escala com a tela e não depende do layout no momento do carregamento
+  svg.attr('viewBox', `0 0 ${W} ${H}`);
+  const kk = Math.min(W / (bx1 - bx0), H / (by1 - by0)) * 0.97;
   const TX = (W - (bx1 - bx0) * kk) / 2 - bx0 * kk, TY = (H - (by1 - by0) * kk) / 2 - by0 * kk;
   const path = d3.geoPath(plano(kk, TX, TY));
   const xy = (lon, lat) => { const p = merc(lon, lat); return [p[0] * kk + TX, p[1] * kk + TY]; };
@@ -155,7 +157,11 @@
     bl.onclick = () => { camadaLocais = !camadaLocais; bl.setAttribute('aria-pressed', camadaLocais); pintar(); };
     mo.appendChild(bl);
   }
-  const rz = document.createElement('button'); rz.textContent = 'Resetar zoom'; rz.onclick = () => svg.transition().call(zoom.transform, d3.zoomIdentity); mo.appendChild(rz);
+  const rz = document.createElement('button'); rz.textContent = 'Ver Brasil'; rz.onclick = () => setUF(null); mo.appendChild(rz);
+  const UFNOME = { ac: 'Acre', al: 'Alagoas', ap: 'Amapá', am: 'Amazonas', ba: 'Bahia', ce: 'Ceará', df: 'Distrito Federal', es: 'Espírito Santo', go: 'Goiás', ma: 'Maranhão', mt: 'Mato Grosso', ms: 'Mato Grosso do Sul', mg: 'Minas Gerais', pa: 'Pará', pb: 'Paraíba', pr: 'Paraná', pe: 'Pernambuco', pi: 'Piauí', rj: 'Rio de Janeiro', rn: 'Rio Grande do Norte', rs: 'Rio Grande do Sul', ro: 'Rondônia', rr: 'Roraima', sc: 'Santa Catarina', sp: 'São Paulo', se: 'Sergipe', to: 'Tocantins', zz: 'Exterior' };
+  const selUF = document.createElement('select'); selUF.id = 'selUF'; selUF.setAttribute('aria-label', 'Analisar um estado');
+  selUF.innerHTML = '<option value="">Estado: todos</option>' + Object.entries(UFNOME).filter(([k]) => k !== 'zz').map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+  selUF.onchange = () => setUF(selUF.value || null); mo.appendChild(selUF);
 
   function zoomCaixa(x0, y0, x1, y1, kMax) {
     const k = Math.min(kMax, .9 / Math.max((x1 - x0) / W, (y1 - y0) / H, 1e-6));
@@ -164,7 +170,16 @@
   function zoomUF(uf) {
     const fs = feats.filter(f => porIbge.get(f.properties.c)?.uf === uf); if (!fs.length) return;
     const [[x0, y0], [x1, y1]] = path.bounds({ type: 'FeatureCollection', features: fs });
-    zoomCaixa(x0, y0, x1, y1, 14);
+    zoomCaixa(x0, y0, x1, y1, 40);
+  }
+  // Analisar um estado: mostra só os municípios dele, ajusta o zoom e abre a aba Estado
+  let ufSel = null;
+  function setUF(uf) {
+    ufSel = uf; selUF.value = uf || '';
+    paths.style('display', f => { const m = porIbge.get(f.properties.c); return !ufSel || (m && m.uf === ufSel) ? null : 'none'; });
+    if (uf && feats.some(f => porIbge.get(f.properties.c)?.uf === uf)) zoomUF(uf); else svg.transition().duration(500).call(zoom.transform, d3.zoomIdentity);
+    if (selecionado && uf && selecionado.uf !== uf) selecionado = null;
+    aba = uf ? 'estado' : 'brasil'; render(); pintar();
   }
   function zoomMun(m) {
     const f = m.ibge && feats.find(x => x.properties.c === m.ibge); if (!f) return zoomUF(m.uf);
@@ -246,7 +261,7 @@
   }
 
   // ---------- Painel lateral ----------
-  const abas = { brasil: 'Brasil', regioes: 'Regiões e UFs', ranking: 'Rankings', mun: 'Município', ...(LC ? { bairros: 'Bairros', local: 'Local' } : {}) };
+  const abas = { brasil: 'Brasil', estado: 'Estado', regioes: 'Regiões e UFs', ranking: 'Rankings', mun: 'Município', ...(LC ? { bairros: 'Bairros', local: 'Local' } : {}) };
   let aba = 'brasil', rank = 'viradas', ordUF = 'swing', ordDir = -1, busca = '';
   const ab = document.getElementById('abas'), pn = document.getElementById('painel');
   Object.entries(abas).forEach(([k, v]) => { const b = document.createElement('button'); b.textContent = v; b.dataset.k = k; b.onclick = () => { aba = k; render(); }; ab.appendChild(b); });
@@ -370,14 +385,46 @@
     <div class="note">Coordenadas do cadastro de locais do TSE (podem ter imprecisão). Aptos = eleitores da seção; não há dados individuais.</div>`;
   }
 
-  function selecionar(m) { selecionado = m; aba = 'mun'; render(); pintar(); zoomMun(m); }
+  // ---------- Análise de um estado ----------
+  let rankUF = 'viradas';
+  const rankUFs = {
+    viradas: ['Municípios que viraram (por votos válidos)', ms => ms.filter(m => m.virada).sort((a, b) => b.val2 - a.val2)],
+    swingL: ['Maior swing pró-Lula (≥ 2 mil válidos)', ms => ms.filter(m => m.val2 >= 2000).sort((a, b) => b.swing - a.swing)],
+    swingF: ['Maior swing pró-Flávio (≥ 2 mil válidos)', ms => ms.filter(m => m.val2 >= 2000).sort((a, b) => a.swing - b.swing)],
+    apertadas: ['Mais apertados no 2º turno (≥ 2 mil válidos)', ms => ms.filter(m => m.val2 >= 2000).sort((a, b) => Math.abs(a.m2) - Math.abs(b.m2))],
+    maiores: ['Maiores municípios (votos válidos)', ms => [...ms].sort((a, b) => b.val2 - a.val2)],
+  };
+  function viewEstado() {
+    if (!ufSel) return '<p>Escolha um estado no seletor acima do mapa (ou clique em uma UF na aba Regiões e UFs) para analisá-lo.</p>';
+    const uf = ufSel, ms = M.filter(m => m.uf === uf), t = tot(ms), nac = tot(M), v = ms.filter(m => m.virada);
+    const nomeUF = UFNOME[uf] ?? uf.toUpperCase();
+    const lista = rankUFs[rankUF][1](ms).slice(0, 60);
+    return `<h3 style="margin-top:0">${esc(nomeUF)} <small>(${ms.length.toLocaleString('pt-BR')} ${uf === 'zz' ? 'localidades' : 'municípios'})</small></h3>
+    <div class="kpis">
+      <div class="kpi"><b class="L">${pc(t.L2 / t.val2 * 100, 2)}</b><span>Lula 2º t. (${mi(t.L2)})</span></div>
+      <div class="kpi"><b class="F">${pc(t.F2 / t.val2 * 100, 2)}</b><span>Flávio 2º t. (${mi(t.F2)})</span></div>
+      <div class="kpi"><b>${pp(t.swing, 2)}</b><span>swing da margem (Brasil: ${pp(nac.swing, 2)})</span></div>
+      <div class="kpi"><b>${v.length}</b><span>municípios viraram (${v.filter(x => x.virada === 'F>L').length} p/ Lula, ${v.filter(x => x.virada === 'L>F').length} p/ Flávio)</span></div>
+      <div class="kpi"><b>${pc((1 - t.comp1 / t.aptos) * 100, 1)} → ${pc((1 - t.comp2 / t.aptos) * 100, 1)}</b><span>abstenção (Brasil: ${pc((1 - nac.comp1 / nac.aptos) * 100, 1)} → ${pc((1 - nac.comp2 / nac.aptos) * 100, 1)})</span></div>
+      <div class="kpi"><b class="${t.m1 > 0 ? 'L' : 'F'}">${pp(t.m1)} → ${pp(t.m2)}</b><span>margem 1º → 2º turno (L − F)</span></div>
+    </div>
+    ${blocoDecomp(t)}
+    <h3>Municípios</h3>
+    <select id="selRankUF">${Object.entries(rankUFs).map(([k, r]) => `<option value="${k}" ${k === rankUF ? 'selected' : ''}>${r[0]}</option>`).join('')}</select>
+    <div class="scroll" style="margin-top:6px"><table><thead><tr><th>Município</th><th>Margem 1º</th><th>Margem 2º</th><th>Swing</th><th>Válidos</th></tr></thead><tbody>
+    ${lista.map(m => `<tr data-i="${m.uf}${m.tse}"><td>${esc(m.nome)}${m.virada ? ' ⇄' : ''}</td><td class="${m.m1 > 0 ? 'L' : 'F'}">${pp(m.m1)}</td><td class="${m.m2 > 0 ? 'L' : 'F'}">${pp(m.m2)}</td><td>${pp(m.swing)}</td><td>${fmt(m.val2)}</td></tr>`).join('') || '<tr><td colspan="5">Nenhum município nesta lista.</td></tr>'}</tbody></table></div>
+    <div class="note">⇄ = mudou o líder entre os turnos. Mostra até 60 linhas. Clique em um município para ver o detalhe.</div>`;
+  }
+
+  function selecionar(m) { if (ufSel && m.uf !== ufSel) setUF(m.uf); selecionado = m; aba = 'mun'; render(); pintar(); zoomMun(m); }
 
   function render() {
     [...ab.children].forEach(b => b.setAttribute('aria-pressed', b.dataset.k === aba));
-    pn.innerHTML = ({ brasil: viewBrasil, regioes: viewRegioes, ranking: viewRanking, mun: viewMun, bairros: () => viewBairros(), local: () => viewLocal() })[aba]() +
+    pn.innerHTML = ({ brasil: viewBrasil, estado: viewEstado, regioes: viewRegioes, ranking: viewRanking, mun: viewMun, bairros: () => viewBairros(), local: () => viewLocal() })[aba]() +
       '<div class="warn">Dados do portal do TSE; podem estar desatualizados ou conter erros. Para reporte, precificação ou decisão, conferir na fonte oficial (resultados.tse.jus.br).</div>';
     pn.querySelectorAll('th[data-o]').forEach(th => th.onclick = () => { const o = th.dataset.o; ordDir = ordUF === o ? -ordDir : -1; ordUF = o; render(); });
-    pn.querySelectorAll('tr[data-uf]').forEach(tr => tr.onclick = () => zoomUF(tr.dataset.uf));
+    pn.querySelectorAll('tr[data-uf]').forEach(tr => tr.onclick = () => setUF(tr.dataset.uf));
+    const sr = pn.querySelector('#selRankUF'); if (sr) sr.onchange = () => { rankUF = sr.value; render(); };
     pn.querySelectorAll('tr[data-bi]').forEach(tr => tr.onclick = () => zoomIndices(bairrosAtuais[+tr.dataset.bi].is));
     pn.querySelectorAll('tr[data-i]').forEach(tr => tr.onclick = () => selecionar(M.find(m => m.uf + m.tse === tr.dataset.i)));
     const s = pn.querySelector('#selRank'); if (s) s.onchange = () => { rank = s.value; render(); };

@@ -10,6 +10,9 @@ node painel-eleicoes/scripts/servir.mjs
 
 Abrir http://localhost:8765 (não abre direto pelo arquivo, por causa dos dados em `dados/`).
 
+- **Análise por estado:** escolha o estado no seletor acima do mapa (ou clique numa UF em "Regiões e UFs"). O mapa mostra só aquele estado, e a aba **Estado** traz KPIs, decomposição dos votos a mais e rankings de municípios. "Ver Brasil" volta à visão nacional.
+- **Nível padrão: município.** A camada de locais de votação e as abas Bairros/Local só carregam com `http://localhost:8765/?locais=1` (precisa do passo 3 abaixo; são 11 MB e dificultam a leitura das viradas).
+
 ## Gerar os dados (a pasta `dados/` não é versionada)
 
 | Passo | Comando | O que faz |
