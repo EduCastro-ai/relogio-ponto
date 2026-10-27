@@ -486,6 +486,15 @@
     <div class="note">Votos válidos do 2º turno que esses municípios representam</div>${barra(e.vlp, e.vep, e.vfp)}<div class="note" style="margin-top:2px">${txt(e.vlp, e.vep, e.vfp)}</div>
     <div class="note">O mínimo é o mesmo do controle "mín." das setas.</div>`;
   }
+  // Barras dos votos válidos em cada turno: mostram como a divisão mudou (no 1º turno entram os outros candidatos)
+  function blocoTurnos(t) {
+    return `<h3>Votos válidos em cada turno</h3>
+    <div class="stack"><div style="width:${t.L1 / t.val1 * 100}%;background:var(--lula)"></div><div style="width:${t.O1 / t.val1 * 100}%;background:#9aa6b5"></div><div style="width:${t.F1 / t.val1 * 100}%;background:var(--flavio)"></div></div>
+    <div class="note">1º turno: Lula ${pc(t.L1 / t.val1 * 100, 2)} · outros ${pc(t.O1 / t.val1 * 100, 2)} · Flávio ${pc(t.F1 / t.val1 * 100, 2)}</div>
+    <div class="stack"><div style="width:${t.L2 / t.val2 * 100}%;background:var(--lula)"></div><div style="width:${t.F2 / t.val2 * 100}%;background:var(--flavio)"></div></div>
+    <div class="note">2º turno: Lula ${pc(t.L2 / t.val2 * 100, 2)} · Flávio ${pc(t.F2 / t.val2 * 100, 2)}</div>
+    `;
+  }
   const tot = (arr) => { const o = {}; ['aptos','comp1','comp2','val1','val2','bn1','bn2','L1','F1','O1','L2','F2'].forEach(k => o[k] = sum(arr, k)); o.m1 = (o.L1 - o.F1) / o.val1 * 100; o.m2 = (o.L2 - o.F2) / o.val2 * 100; o.swing = o.m2 - o.m1; o.dfatia = (o.L2 / (o.L2 + o.F2) - o.L1 / (o.L1 + o.F1)) * 100; return o; };
 
   function viewBrasil() {
@@ -498,11 +507,8 @@
       <div class="kpi" ${ai('abst')}><b>${pc((1 - t.comp1 / t.aptos) * 100,2)} → ${pc((1 - t.comp2 / t.aptos) * 100, 2)}</b><span>abstenção</span></div>
       ${kpiSwing(M)}
     </div>
+    ${blocoTurnos(t)}
     ${blocoFaixas(M.filter(m => m.uf !== 'zz'))}
-    <div class="stack"><div style="width:${t.L1 / t.val1 * 100}%;background:var(--lula)"></div><div style="width:${t.O1 / t.val1 * 100}%;background:#9aa6b5"></div><div style="width:${t.F1 / t.val1 * 100}%;background:var(--flavio)"></div></div>
-    <div class="note">1º turno: Lula ${pc(t.L1 / t.val1 * 100, 2)} · outros ${pc(t.O1 / t.val1 * 100, 2)} · Flávio ${pc(t.F1 / t.val1 * 100, 2)}</div>
-    <div class="stack"><div style="width:${t.L2 / t.val2 * 100}%;background:var(--lula)"></div><div style="width:${t.F2 / t.val2 * 100}%;background:var(--flavio)"></div></div>
-    <div class="note">2º turno: Lula ${pc(t.L2 / t.val2 * 100, 2)} · Flávio ${pc(t.F2 / t.val2 * 100, 2)}</div>
     ${blocoDecomp(t)}`;
   }
 
@@ -634,6 +640,7 @@
       <div class="kpi" ${ai('m12')}><b class="${t.m1 > 0 ? 'L' : 'F'}">${pp(t.m1)} → ${pp(t.m2)}</b><span>margem 1º → 2º turno (L − F)</span></div>
       ${kpiSwing(ms)}
     </div>
+    ${blocoTurnos(t)}
     ${blocoFaixas(ms)}
     ${blocoDecomp(t)}
     ${ufsRegiao.length ? `<h3>Estados da região <small>(clique para analisar)</small></h3>${tabelaGrupo(ufsRegiao, 'UF', 'uf')}` : ''}
