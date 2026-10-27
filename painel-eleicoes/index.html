@@ -239,7 +239,7 @@
     if (!c) L.innerHTML += `<span class="i" ${ai('virada')}>ⓘ</span>`;
     if (setas !== 'nenhuma') {
       const n = contarSetas(), fmtN = x => x.toLocaleString('pt-BR');
-      L.innerHTML = `<span><span style="display:inline-block;width:16px;height:10px;background:#eef0f3;border:1px solid #b9c0ca;vertical-align:middle"></span> Mapa em cinza claro: a informação está nas setas. Desligue as setas para ver as camadas coloridas.</span><span style="flex-basis:100%">${setas !== 'flavio' ? `<b style="color:#c62828">←</b> pró-Lula: ${fmtN(n.l)} municípios` : ''}${setas === 'ambas' ? ' · ' : ''}${setas !== 'lula' ? `<b style="color:#1565c0">→</b> pró-Flávio: ${fmtN(n.f)} municípios` : ''} (Δ fatia de pelo menos ${minSeta.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} p.p.; tamanho proporcional ao valor) <span class="i" ${ai('setas')}>ⓘ</span></span>`;
+      L.innerHTML = `<span><span style="display:inline-block;width:16px;height:10px;background:#eef0f3;border:1px solid #b9c0ca;vertical-align:middle"></span> Mapa em cinza claro: a informação está nas setas. Clique em uma camada (Margem, Swing…) ou em "Nenhuma" para voltar às cores.</span><span style="flex-basis:100%">${setas !== 'flavio' ? `<b style="color:#c62828">←</b> pró-Lula: ${fmtN(n.l)} municípios` : ''}${setas === 'ambas' ? ' · ' : ''}${setas !== 'lula' ? `<b style="color:#1565c0">→</b> pró-Flávio: ${fmtN(n.f)} municípios` : ''} (Δ fatia de pelo menos ${minSeta.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} p.p.; tamanho proporcional ao valor) <span class="i" ${ai('setas')}>ⓘ</span></span>`;
     }
     if (camadaLocais && LC) {
       const precisaT2 = ['m2', 'swing', 'fatia', 'virada', 'part'].includes(modo) && !temT2;
@@ -248,7 +248,11 @@
   }
   const mo = document.getElementById('modos');
   Object.entries(modos).forEach(([k, v]) => {
-    const b = document.createElement('button'); b.textContent = v.nome; if (AJUDA[k]) b.dataset.info = AJUDA[k]; b.onclick = () => { modo = k; [...mo.children].forEach(x => x.setAttribute('aria-pressed', x === b)); pintar(); };
+    const b = document.createElement('button'); b.textContent = v.nome; if (AJUDA[k]) b.dataset.info = AJUDA[k]; b.onclick = () => {
+      modo = k; [...mo.children].forEach(x => x.setAttribute('aria-pressed', x === b));
+      if (setas !== 'nenhuma') { setas = 'nenhuma'; document.querySelectorAll('.grupo button').forEach(x => x.setAttribute('aria-pressed', x.textContent === 'Nenhuma')); } // escolher uma camada sai do modo setas
+      pintar();
+    };
     b.setAttribute('aria-pressed', k === modo); mo.appendChild(b);
   });
   if (LC) {
