@@ -137,6 +137,7 @@
     compMais: 'Comparecimento do 2º turno − comparecimento do 1º turno (eleitores que compareceram a mais).',
     bnMais: 'Brancos e nulos do 1º turno − brancos e nulos do 2º turno: quem votou em branco/nulo no 1º e passou a votar em candidato. Valor negativo = mais brancos/nulos no 2º.',
     setas: 'Setas de deslocamento: ← vermelha = o município se deslocou a favor de Lula; → azul = a favor de Flávio.\nUsam o Δ fatia (Lula ÷ (Lula + Flávio), 2º − 1º turno) e só aparecem quando o deslocamento é de pelo menos o mínimo escolhido. O tamanho da seta é proporcional ao valor. Ela fica no centro do município e não diz quem ganhou, só para onde o resultado se moveu.',
+    pesoVal: '% válidos = parcela dos votos válidos do 2º turno do recorte (região/estado escolhido) que o grupo representa.',
     totalDec: 'Votos válidos a mais = (outros candidatos do 1º turno) + (comparecimento a mais) + (brancos/nulos que passaram a votar). É uma conta de saldo, não um mapa de migração.',
   };
   const ai = k => `data-info="${esc(AJUDA[k])}"`;
@@ -144,6 +145,10 @@
   // Δ da fatia de Lula entre os finalistas: Lula ÷ (Lula + Flávio) no 2º turno − o mesmo no 1º turno (p.p.). Remove o efeito mecânico de os "outros" sumirem
   M.forEach(m => { const a = m.L1 + m.F1, b = m.L2 + m.F2; m.ok = m.val1 > 0 && m.val2 > 0 && a > 0 && b > 0; m.dsh = m.ok ? (m.L2 / b - m.L1 / a) * 100 : 0; });
   const REGIAO_DE = Object.fromEntries(P.ufs.map(u => [u.k, u.regiao]));
+  // Filtros por atributo do município: capital (código IBGE das 27 capitais) e tamanho (eleitores aptos). O exterior fica fora dos dois
+  const CAPITAIS = new Set(['1200401','2704302','1600303','1302603','2927408','2304400','5300108','3205309','5208707','2111300','5103403','5002704','3106200','1501402','2507507','4106902','2611606','2211001','3304557','2408102','4314902','1100205','1400100','4205407','3550308','2800308','1721000']);
+  const FAIXAS = [['f1', 'Até 10 mil eleitores', 1e4], ['f2', '10 a 50 mil', 5e4], ['f3', '50 a 200 mil', 2e5], ['f4', 'Mais de 200 mil', Infinity]];
+  M.forEach(m => { m.capital = CAPITAIS.has(String(m.ibge)); m.faixa = m.uf === 'zz' ? null : FAIXAS.find(f => m.aptos <= f[2])[0]; });
   // Quantos municípios (e quanto do eleitorado válido) deslocaram o resultado a favor de Lula
   function estatSwing(ms) {
     const ok = ms.filter(m => m.ok), tv = sum(ok, 'val2');
@@ -199,7 +204,7 @@
     virada: { nome: 'Viradas', cor: m => m.virada === 'F>L' ? '#b71c1c' : m.virada === 'L>F' ? '#0d47a1' : (m.v2 === 'L' ? '#f3d2d2' : '#d0e0f3'), leg: null, tip: m => m.virada === 'F>L' ? 'VIROU: Flávio → Lula' : m.virada === 'L>F' ? 'VIROU: Lula → Flávio' : 'Manteve o líder' },
     part: { nome: 'Comparecimento Δ', cor: m => { const [lo, hi] = lims('part'); return d3.interpolateGreens(clamp((dPart(m) - lo) / (hi - lo))); }, get leg() { const [lo, hi] = lims('part'); return [lo, hi, 'menos', 'mais', 'variação do comparecimento, p.p. do eleitorado apto']; }, tip: m => `Comparecimento: ${pp(dPart(m))}` },
   };
-  let modo = 'm2', selecionado = null, ufSel = null, regSel = null, setas = 'nenhuma', minSeta = 3;
+  let modo = 'm2', selecionado = null, ufSel = null, regSel = null, capSel = '', tamSel = '', setas = 'nenhuma', minSeta = 3;
 
   const svg = d3.select('#map'), gMapa = svg.append('g');
   const box = svg.node().getBoundingClientRect();
@@ -232,7 +237,8 @@
   function pintar() {
     calcEscala();
     // com as setas ligadas o mapa fica em cinza claro neutro: a informação é a seta
-    paths.attr('fill', f => { const m = porIbge.get(f.properties.c); return setas !== 'nenhuma' ? '#eef0f3' : m ? modos[modo].cor(m) : '#ccc'; })
+    // municípios fora dos filtros de capital/tamanho ficam quase brancos; os do filtro mantêm cor (ou cinza, com setas)
+    paths.attr('fill', f => { const m = porIbge.get(f.properties.c); return m && !noAtrib(m) ? '#fafbfc' : setas !== 'nenhuma' ? '#eef0f3' : m ? modos[modo].cor(m) : '#ccc'; })
          .classed('sel', f => selecionado && f.properties.c === selecionado.ibge)
          .attr('fill-opacity', camadaLocais ? 0.3 : 1);
     recolorirLocais(); desenharLocais(); desenharSetas();
@@ -282,7 +288,7 @@
   ms.innerHTML = 'mín. <input type="range" id="minSeta" min="0" max="5" step="0.5" value="3"> <output>3,0</output> p.p.';
   ms.querySelector('input').oninput = e => { minSeta = +e.target.value; ms.querySelector('output').textContent = minSeta.toLocaleString('pt-BR', { minimumFractionDigits: 1 }); pintar(); render(); };
   gs.appendChild(ms); mo.appendChild(gs);
-  const rz = document.createElement('button'); rz.textContent = 'Ver Brasil'; rz.onclick = () => { ufSel = null; regSel = null; aplicarEscopo(); }; mo.appendChild(rz);
+  const rz = document.createElement('button'); rz.textContent = 'Ver Brasil'; rz.onclick = () => { ufSel = null; regSel = null; capSel = ''; tamSel = ''; selCap.value = ''; selTam.value = ''; aplicarEscopo(); }; mo.appendChild(rz);
   const UFNOME = { ac: 'Acre', al: 'Alagoas', ap: 'Amapá', am: 'Amazonas', ba: 'Bahia', ce: 'Ceará', df: 'Distrito Federal', es: 'Espírito Santo', go: 'Goiás', ma: 'Maranhão', mt: 'Mato Grosso', ms: 'Mato Grosso do Sul', mg: 'Minas Gerais', pa: 'Pará', pb: 'Paraíba', pr: 'Paraná', pe: 'Pernambuco', pi: 'Piauí', rj: 'Rio de Janeiro', rn: 'Rio Grande do Norte', rs: 'Rio Grande do Sul', ro: 'Rondônia', rr: 'Roraima', sc: 'Santa Catarina', sp: 'São Paulo', se: 'Sergipe', to: 'Tocantins', zz: 'Exterior' };
   const REGIOES = ['Norte', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul'];
   const selReg = document.createElement('select'); selReg.id = 'selReg'; selReg.setAttribute('aria-label', 'Analisar uma região');
@@ -293,6 +299,14 @@
   selUF.onchange = () => setUF(selUF.value || null); mo.appendChild(selUF);
   const opcoesUF = () => '<option value="">Estado: todos</option>' + Object.entries(UFNOME).filter(([k]) => k !== 'zz' && (!regSel || REGIAO_DE[k] === regSel)).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
   selUF.innerHTML = opcoesUF();
+  // Filtros por atributo (capital, tamanho): combinam com região/estado e valem para mapa, setas, KPIs e tabelas
+  const nFaixa = k => M.filter(m => m.faixa === k).length;
+  const selCap = document.createElement('select'); selCap.setAttribute('aria-label', 'Filtrar capitais');
+  selCap.innerHTML = `<option value="">Capitais: todas</option><option value="capitais">Só as 27 capitais</option><option value="interior">Sem as capitais</option>`;
+  selCap.onchange = () => { capSel = selCap.value; aplicarEscopo(); }; mo.appendChild(selCap);
+  const selTam = document.createElement('select'); selTam.setAttribute('aria-label', 'Filtrar por tamanho do município');
+  selTam.innerHTML = `<option value="">Tamanho: todos</option>` + FAIXAS.map(f => `<option value="${f[0]}">${f[1]} (${nFaixa(f[0]).toLocaleString('pt-BR')})</option>`).join('');
+  selTam.onchange = () => { tamSel = selTam.value; aplicarEscopo(); }; mo.appendChild(selTam);
 
   function zoomCaixa(x0, y0, x1, y1, kMax) {
     const k = Math.min(kMax, .9 / Math.max((x1 - x0) / W, (y1 - y0) / H, 1e-6));
@@ -305,16 +319,19 @@
   }
   // Escopo da análise: Brasil, uma região ou um estado (o estado pertence sempre a uma região).
   // O mapa mostra só os municípios do escopo, com zoom ajustado, e a aba "Região / Estado" analisa o recorte.
-  const noEscopo = m => (!ufSel || m.uf === ufSel) && (!regSel || m.regiao === regSel);
+  const noGeo = m => (!ufSel || m.uf === ufSel) && (!regSel || m.regiao === regSel);
+  const noAtrib = m => (!capSel || (capSel === 'capitais' ? m.capital : m.uf !== 'zz' && !m.capital)) && (!tamSel || m.faixa === tamSel);
+  const noEscopo = m => noGeo(m) && noAtrib(m);
+  const filtroAtivo = () => !!(ufSel || regSel || capSel || tamSel);
   function aplicarEscopo() {
-    paths.style('display', f => { if (!ufSel && !regSel) return null; const m = porIbge.get(f.properties.c); return m && noEscopo(m) ? null : 'none'; });
-    const fs = feats.filter(f => { const m = porIbge.get(f.properties.c); return m && noEscopo(m); });
+    paths.style('display', f => { if (!ufSel && !regSel) return null; const m = porIbge.get(f.properties.c); return m && noGeo(m) ? null : 'none'; });
+    const fs = feats.filter(f => { const m = porIbge.get(f.properties.c); return m && noGeo(m); });
     if ((ufSel || regSel) && fs.length) { const [[x0, y0], [x1, y1]] = path.bounds({ type: 'FeatureCollection', features: fs }); zoomCaixa(x0, y0, x1, y1, 40); }
     else svg.transition().duration(500).call(zoom.transform, d3.zoomIdentity);
     selReg.value = regSel && REGIOES.includes(regSel) ? regSel : '';
     selUF.innerHTML = opcoesUF(); selUF.value = ufSel || '';
-    if (selecionado && !noEscopo(selecionado)) selecionado = null;
-    aba = ufSel || regSel ? 'estado' : 'brasil'; render(); pintar();
+    if (selecionado && !noGeo(selecionado)) selecionado = null;
+    aba = filtroAtivo() ? 'estado' : 'brasil'; render(); pintar();
   }
   function setUF(uf) { ufSel = uf; if (uf) regSel = REGIAO_DE[uf] ?? null; aplicarEscopo(); }
   function setRegiao(r) { regSel = r; ufSel = null; aplicarEscopo(); }
@@ -430,7 +447,7 @@
   }
 
   // ---------- Painel lateral ----------
-  const abas = { brasil: 'Brasil', estado: 'Região / Estado', regioes: 'Regiões e UFs', ranking: 'Rankings', mun: 'Município', ...(LC ? { bairros: 'Bairros', local: 'Local' } : {}) };
+  const abas = { brasil: 'Brasil', estado: 'Recorte', regioes: 'Regiões e UFs', recortes: 'Capitais e tamanho', ranking: 'Rankings', mun: 'Município', ...(LC ? { bairros: 'Bairros', local: 'Local' } : {}) };
   let aba = 'brasil', rank = 'viradas', ordUF = 'dfatia', ordDir = -1, busca = '';
   const ab = document.getElementById('abas'), pn = document.getElementById('painel');
   Object.entries(abas).forEach(([k, v]) => { const b = document.createElement('button'); b.textContent = v; b.dataset.k = k; b.onclick = () => { aba = k; render(); }; ab.appendChild(b); });
@@ -500,6 +517,22 @@
       ${r.map(g => `<tr ${clicavel && g.k !== 'Exterior' ? `data-${clicavel}="${g.k}"` : ''}><td>${esc(g.k.length === 2 ? g.k.toUpperCase() : g.k)}</td><td>${pp(g.dfatia)}</td><td>${pp(g.swing)}</td><td>${pc(g.pml, 0)}</td><td>${pc(g.pvl, 0)}</td><td class="${g.m2 > 0 ? 'L' : 'F'}">${pp(g.m2)}</td><td>${fmt(g.dL)}</td><td>${fmt(g.dF)}</td><td>${pp(g.dPart)}</td><td>${g.viradas ?? ''}</td></tr>`).join('')}</tbody></table>`;
   }
   function viewRegioes() { return `<h3>Regiões <small>(clique para analisar)</small></h3>${tabelaGrupo(P.regioes, 'Região', 'reg')}<h3>UFs <small>(clique para analisar)</small></h3><div class="scroll">${tabelaGrupo(P.ufs, 'UF', 'uf')}</div><div class="note">Δ fatia = deslocamento de Lula ÷ (Lula + Flávio) entre os turnos (medida principal); swing e margem em p.p. de (Lula − Flávio) sobre os votos válidos. Δ Lula e Δ Flávio = 2º turno − 1º turno. "% mun. pró-Lula" e "% votos" usam o mínimo do controle "mín." das setas (hoje ${minSeta.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} p.p.).</div>`; }
+
+  // Comparação por grupo (capitais × interior e faixas de tamanho), dentro da região/estado escolhido; clicar em uma linha aplica o filtro
+  function viewRecortes() {
+    const geo = M.filter(m => noGeo(m) && m.uf !== 'zz');
+    const linha = (rot, ms, attr) => {
+      if (!ms.length) return ''; const t = tot(ms), e = estatMin(ms, minSeta), ativo = attr && (attr[0] === 'cap' ? capSel === attr[1] : tamSel === attr[1]);
+      return `<tr ${attr ? `data-${attr[0]}="${attr[1]}"` : ''} ${ativo ? 'style="font-weight:700"' : ''}><td>${rot}</td><td>${fmt(ms.length)}</td><td>${pc(t.val2 / sum(geo, 'val2') * 100, 1)}</td><td>${pp(t.dfatia)}</td><td>${pp(t.swing)}</td><td>${pc(e.pl, 0)}</td><td>${pc(e.vlp, 0)}</td><td class="${t.m2 > 0 ? 'L' : 'F'}">${pp(t.m2)}</td><td>${ms.filter(m => m.virada).length}</td></tr>`;
+    };
+    const cab = t => `<thead><tr><th>${t}</th><th>Municípios</th><th ${ai('pesoVal')}>% válidos</th><th ${ai('fatia')}>Δ fatia</th><th ${ai('swing')}>Swing</th><th ${ai('pmun')}>% mun. pró-Lula</th><th ${ai('pvot')}>% votos</th><th ${ai('m2')}>Margem 2º</th><th ${ai('virada')}>Viradas</th></tr></thead>`;
+    const esc0 = ufSel ? (UFNOME[ufSel] ?? ufSel) : regSel ? `Região ${regSel}` : 'Brasil (sem exterior)';
+    return `<h3 style="margin-top:0">Capitais × interior <small>(${esc(esc0)}; clique para filtrar)</small></h3>
+    <table>${cab('Grupo')}<tbody>${linha('Capitais', geo.filter(m => m.capital), ['cap', 'capitais'])}${linha('Demais municípios', geo.filter(m => !m.capital), ['cap', 'interior'])}</tbody></table>
+    <h3>Por tamanho do município <small>(eleitores aptos)</small></h3>
+    <table>${cab('Faixa')}<tbody>${FAIXAS.map(f => linha(f[1], geo.filter(m => m.faixa === f[0]), ['tam', f[0]])).join('')}</tbody></table>
+    <div class="note">Os grupos dividem os municípios do recorte geográfico escolhido (região ou estado). "% válidos" = parcela dos votos válidos do 2º turno do recorte. Δ fatia, swing e margem são calculados somando os votos do grupo. "% mun. pró-Lula" e "% votos" usam o mínimo do controle "mín." das setas (hoje ${minSeta.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} p.p.). Tamanho = eleitores aptos do município, dado do TSE. São características do município, não de cada eleitor: o voto é secreto e o painel não mostra como cada tipo de eleitor votou.</div>`;
+  }
 
   const rankings = {
     viradas: ['Viradas (por votos válidos)', () => M.filter(m => m.virada).sort((a, b) => b.val2 - a.val2)],
@@ -584,9 +617,11 @@
     maiores: ['Maiores municípios (votos válidos)', ms => [...ms].sort((a, b) => b.val2 - a.val2)],
   };
   function viewEstado() {
-    if (!ufSel && !regSel) return '<p>Escolha uma região ou um estado nos seletores acima do mapa (ou clique em uma linha da aba Regiões e UFs) para analisá-lo.</p>';
-    const uf = ufSel, ms = M.filter(noEscopo), t = tot(ms), nac = tot(M), v = ms.filter(m => m.virada);
-    const nomeEscopo = uf ? (UFNOME[uf] ?? uf.toUpperCase()) : `Região ${regSel}`;
+    if (!filtroAtivo()) return '<p>Escolha uma região, um estado, as capitais ou um tamanho de município nos seletores acima do mapa (ou clique em uma linha das abas Regiões e UFs e Recortes) para analisar o recorte.</p>';
+    const uf = ufSel, ms = M.filter(noEscopo), t = ms.length ? tot(ms) : null, nac = tot(M), v = ms.filter(m => m.virada);
+    if (!t) return '<p>Nenhum município neste recorte. Mude os filtros acima do mapa.</p>';
+    const partes = [uf ? (UFNOME[uf] ?? uf.toUpperCase()) : regSel ? `Região ${regSel}` : 'Brasil', capSel === 'capitais' ? 'só capitais' : capSel === 'interior' ? 'sem capitais' : '', tamSel ? FAIXAS.find(f => f[0] === tamSel)[1].toLowerCase() : ''].filter(Boolean);
+    const nomeEscopo = partes.join(' · ');
     const lista = rankUFs[rankUF][1](ms).slice(0, 60);
     const ufsRegiao = !uf && regSel ? P.ufs.filter(u => u.regiao === regSel) : [];
     return `<h3 style="margin-top:0">${esc(nomeEscopo)} <small>(${ms.length.toLocaleString('pt-BR')} ${uf === 'zz' || regSel === 'Exterior' ? 'localidades' : 'municípios'}${uf ? ` · Região ${esc(REGIAO_DE[uf] ?? '')}` : ''})</small></h3>
@@ -609,15 +644,17 @@
     <div class="note">⇄ = mudou o líder entre os turnos. Mostra até 60 linhas. Clique em um município para ver o detalhe.</div>`;
   }
 
-  function selecionar(m) { if (!noEscopo(m)) setUF(m.uf); selecionado = m; aba = 'mun'; render(); pintar(); zoomMun(m); }
+  function selecionar(m) { if (!noGeo(m)) setUF(m.uf); selecionado = m; aba = 'mun'; render(); pintar(); zoomMun(m); }
 
   function render() {
     [...ab.children].forEach(b => b.setAttribute('aria-pressed', b.dataset.k === aba));
-    pn.innerHTML = ({ brasil: viewBrasil, estado: viewEstado, regioes: viewRegioes, ranking: viewRanking, mun: viewMun, bairros: () => viewBairros(), local: () => viewLocal() })[aba]() +
+    pn.innerHTML = ({ brasil: viewBrasil, estado: viewEstado, regioes: viewRegioes, recortes: viewRecortes, ranking: viewRanking, mun: viewMun, bairros: () => viewBairros(), local: () => viewLocal() })[aba]() +
       '<div class="warn">Dados do portal do TSE; podem estar desatualizados ou conter erros. Para reporte, precificação ou decisão, conferir na fonte oficial (resultados.tse.jus.br).</div>';
     pn.querySelectorAll('th[data-o]').forEach(th => th.onclick = () => { const o = th.dataset.o; ordDir = ordUF === o ? -ordDir : -1; ordUF = o; render(); });
     pn.querySelectorAll('tr[data-uf]').forEach(tr => tr.onclick = () => setUF(tr.dataset.uf));
     pn.querySelectorAll('tr[data-reg]').forEach(tr => tr.onclick = () => setRegiao(tr.dataset.reg));
+    pn.querySelectorAll('tr[data-cap]').forEach(tr => tr.onclick = () => { capSel = capSel === tr.dataset.cap ? '' : tr.dataset.cap; selCap.value = capSel; aplicarEscopo(); });
+    pn.querySelectorAll('tr[data-tam]').forEach(tr => tr.onclick = () => { tamSel = tamSel === tr.dataset.tam ? '' : tr.dataset.tam; selTam.value = tamSel; aplicarEscopo(); });
     const sr = pn.querySelector('#selRankUF'); if (sr) sr.onchange = () => { rankUF = sr.value; render(); };
     pn.querySelectorAll('tr[data-bi]').forEach(tr => tr.onclick = () => zoomIndices(bairrosAtuais[+tr.dataset.bi].is));
     pn.querySelectorAll('tr[data-i]').forEach(tr => tr.onclick = () => selecionar(M.find(m => m.uf + m.tse === tr.dataset.i)));
