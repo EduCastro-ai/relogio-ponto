@@ -507,9 +507,9 @@
       <div class="kpi" ${ai('abst')}><b>${pc((1 - t.comp1 / t.aptos) * 100,2)} → ${pc((1 - t.comp2 / t.aptos) * 100, 2)}</b><span>abstenção</span></div>
       ${kpiSwing(M)}
     </div>
-    ${blocoTurnos(t)}
     ${blocoFaixas(M.filter(m => m.uf !== 'zz'))}
-    ${blocoDecomp(t)}`;
+    <div style="margin-top:28px">${blocoDecomp(t)}</div>
+    ${blocoTurnos(t)}`;
   }
 
   function tabelaGrupo(rows, titulo, clicavel) {
@@ -640,9 +640,9 @@
       <div class="kpi" ${ai('m12')}><b class="${t.m1 > 0 ? 'L' : 'F'}">${pp(t.m1)} → ${pp(t.m2)}</b><span>margem 1º → 2º turno (L − F)</span></div>
       ${kpiSwing(ms)}
     </div>
-    ${blocoTurnos(t)}
     ${blocoFaixas(ms)}
-    ${blocoDecomp(t)}
+    <div style="margin-top:28px">${blocoDecomp(t)}</div>
+    ${blocoTurnos(t)}
     ${ufsRegiao.length ? `<h3>Estados da região <small>(clique para analisar)</small></h3>${tabelaGrupo(ufsRegiao, 'UF', 'uf')}` : ''}
     <h3>Municípios</h3>
     <select id="selRankUF">${Object.entries(rankUFs).map(([k, r]) => `<option value="${k}" ${k === rankUF ? 'selected' : ''}>${r[0]}</option>`).join('')}</select>
