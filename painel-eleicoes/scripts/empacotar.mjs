@@ -13,6 +13,9 @@ const inline = (js) => `<script>\n${js.replace(/<\/script/gi, '<\\/script')}\n</
 
 let html = await ler('index.html');
 const logo = (await readFile(path.join(RAIZ, 'assets', 'portofino-logo-branco.png'))).toString('base64');
+// Montserrat 400/600/700 (latin, @fontsource/montserrat 5.1.0, licença OFL) embutida em base64
+const fontes = {};
+for (const w of [400, 600, 700]) { const n = `montserrat-latin-${w}-normal.woff2`; fontes[n] = (await readFile(path.join(RAIZ, 'dados', 'vendor', 'montserrat-5.1.0', n))).toString('base64'); }
 const trocas = [
   [/src="assets\/portofino-logo-branco\.png"/, `src="data:image/png;base64,${logo}"`], // logo embutido
   [/<script src="https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/d3\/7\.9\.0\/d3\.min\.js"><\/script>/, inline(await ler('dados', 'vendor', 'd3-7.9.0', 'd3.min.js'))],
@@ -24,6 +27,8 @@ for (const [padrao, novo] of trocas) {
   if (!padrao.test(html)) throw new Error(`trecho não encontrado no index.html: ${padrao}`);
   html = html.replace(padrao, () => novo); // função: evita interpretar "$" no texto inserido
 }
+html = html.replace(/url\('dados\/vendor\/montserrat-5\.1\.0\/([^']+)'\)/g, (_, n) => `url('data:font/woff2;base64,${fontes[n]}')`);
+if (html.includes('dados/vendor/')) throw new Error('ainda há referência a dados/vendor no pacote');
 if (/<script[^>]+src=/i.test(html)) throw new Error('ainda há <script src=...> externo no pacote');
 if (/<img[^>]+src="(?!data:)/i.test(html)) throw new Error('ainda há <img src=...> externo no pacote');
 

@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Painel Eleições 2026</title>
 <style>
+  @font-face { font-family:'Montserrat'; font-weight:400; font-style:normal; font-display:swap; src:url('dados/vendor/montserrat-5.1.0/montserrat-latin-400-normal.woff2') format('woff2'); }
+  @font-face { font-family:'Montserrat'; font-weight:600; font-style:normal; font-display:swap; src:url('dados/vendor/montserrat-5.1.0/montserrat-latin-600-normal.woff2') format('woff2'); }
+  @font-face { font-family:'Montserrat'; font-weight:700; font-style:normal; font-display:swap; src:url('dados/vendor/montserrat-5.1.0/montserrat-latin-700-normal.woff2') format('woff2'); }
   /* Identidade Portofino (tema do template corporativo): Montserrat; verdes 0A2824 / 0A413B / 158775 / 05C18B.
      O mapa mantém vermelho (Lula) e azul (Flávio): são cores de leitura do resultado, não de marca. */
   :root {
@@ -38,6 +41,11 @@
   .legend .marcas span { position:absolute; top:12px; transform:translateX(-50%); font-size:11px; }
   .legend .aviso-escala { line-height:1.4; }
   .controls label { display:flex; align-items:center; gap:5px; font-size:12px; color:var(--mut); cursor:pointer; }
+  .controls .grupo { display:inline-flex; flex-wrap:wrap; align-items:center; gap:4px; }
+  .controls .grupo .gl { font-size:12px; color:var(--mut); }
+  .controls .grupo button { padding:4px 8px; font-size:12px; }
+  .controls .minseta input { width:90px; accent-color:var(--acc); }
+  .controls .minseta output { min-width:24px; text-align:right; }
   #ajuda { position:fixed; pointer-events:none; display:none; z-index:10; max-width:330px; background:var(--card); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:12px; line-height:1.45; white-space:pre-line; box-shadow:0 4px 14px rgba(0,0,0,.2); text-align:left; font-weight:400; }
   th[data-info]::after, td[data-info]::after, span[data-info]::after { content:' ⓘ'; color:var(--info); font-size:1.15em; font-weight:700; }
   .kpi[data-info] { position:relative; padding-right:24px; }
@@ -79,7 +87,7 @@
 <main>
   <section class="card">
     <div class="controls" id="modos" role="group" aria-label="Camada do mapa"></div>
-    <div id="mapbox"><svg id="map" role="img" aria-label="Mapa dos municípios do Brasil"></svg><canvas id="locais" aria-hidden="true"></canvas></div>
+    <div id="mapbox"><svg id="map" role="img" aria-label="Mapa dos municípios do Brasil"></svg><canvas id="locais" aria-hidden="true"></canvas><canvas id="setas" aria-hidden="true"></canvas></div>
     <div class="legend" id="legenda"></div>
   </section>
   <aside class="card">
@@ -126,6 +134,7 @@
     outros: 'Votos válidos dos outros candidatos no 1º turno. Eles não disputaram o 2º turno; esses eleitores só aparecem no 2º se votaram em Lula ou Flávio, em branco/nulo, ou se abstiveram.',
     compMais: 'Comparecimento do 2º turno − comparecimento do 1º turno (eleitores que compareceram a mais).',
     bnMais: 'Brancos e nulos do 1º turno − brancos e nulos do 2º turno: quem votou em branco/nulo no 1º e passou a votar em candidato. Valor negativo = mais brancos/nulos no 2º.',
+    setas: 'Setas de deslocamento: ← vermelha = o município se deslocou a favor de Lula; → azul = a favor de Flávio.\nUsam o Δ fatia (Lula ÷ (Lula + Flávio), 2º − 1º turno) e só aparecem quando o deslocamento é de pelo menos o mínimo escolhido. O tamanho da seta é proporcional ao valor. Ela fica no centro do município e não diz quem ganhou, só para onde o resultado se moveu.',
     totalDec: 'Votos válidos a mais = (outros candidatos do 1º turno) + (comparecimento a mais) + (brancos/nulos que passaram a votar). É uma conta de saldo, não um mapa de migração.',
   };
   const ai = k => `data-info="${esc(AJUDA[k])}"`;
@@ -181,7 +190,7 @@
     virada: { nome: 'Viradas', cor: m => m.virada === 'F>L' ? '#b71c1c' : m.virada === 'L>F' ? '#0d47a1' : (m.v2 === 'L' ? '#f3d2d2' : '#d0e0f3'), leg: null, tip: m => m.virada === 'F>L' ? 'VIROU: Flávio → Lula' : m.virada === 'L>F' ? 'VIROU: Lula → Flávio' : 'Manteve o líder' },
     part: { nome: 'Comparecimento Δ', cor: m => { const [lo, hi] = lims('part'); return d3.interpolateGreens(clamp((dPart(m) - lo) / (hi - lo))); }, get leg() { const [lo, hi] = lims('part'); return [lo, hi, 'menos', 'mais', 'variação do comparecimento, p.p. do eleitorado apto']; }, tip: m => `Comparecimento: ${pp(dPart(m))}` },
   };
-  let modo = 'm2', selecionado = null, ufSel = null, regSel = null;
+  let modo = 'm2', selecionado = null, ufSel = null, regSel = null, setas = 'nenhuma', minSeta = 3;
 
   const svg = d3.select('#map'), gMapa = svg.append('g');
   const box = svg.node().getBoundingClientRect();
@@ -203,20 +212,21 @@
       if (localPerto(ev) >= 0) return;
       const m = porIbge.get(f.properties.c); if (!m) return;
       tip.style.display = 'block'; tip.style.left = Math.min(ev.clientX + 14, innerWidth - 270) + 'px'; tip.style.top = (ev.clientY + 14) + 'px';
-      tip.innerHTML = `<b>${esc(m.nome)}/${m.uf.toUpperCase()}</b><br>2º t.: Lula ${pc(m.L2 / m.val2 * 100)} · Flávio ${pc(m.F2 / m.val2 * 100)}<br>1º t.: Lula ${pc(m.L1 / m.val1 * 100)} · Flávio ${pc(m.F1 / m.val1 * 100)}<br>${modos[modo].tip(m)}`;
+      tip.innerHTML = `<b>${esc(m.nome)}/${m.uf.toUpperCase()}</b><br>2º t.: Lula ${pc(m.L2 / m.val2 * 100)} · Flávio ${pc(m.F2 / m.val2 * 100)}<br>1º t.: Lula ${pc(m.L1 / m.val1 * 100)} · Flávio ${pc(m.F1 / m.val1 * 100)}<br>${modos[modo].tip(m)}${setas !== 'nenhuma' && m.ok && modo !== 'fatia' ? `<br>Δ fatia de Lula: ${pp(m.dsh)}` : ''}`;
     })
     .on('mouseleave', () => { tip.style.display = 'none'; })
     .on('click', (ev, f) => { if (localPerto(ev) >= 0) return; const m = porIbge.get(f.properties.c); if (m) selecionar(m); });
 
-  const zoom = d3.zoom().scaleExtent([1, 60]).on('zoom', e => { gMapa.attr('transform', e.transform); desenharLocais(); });
+  const zoom = d3.zoom().scaleExtent([1, 60]).on('zoom', e => { gMapa.attr('transform', e.transform); desenharLocais(); desenharSetas(); });
   svg.call(zoom);
 
   function pintar() {
     calcEscala();
-    paths.attr('fill', f => { const m = porIbge.get(f.properties.c); return m ? modos[modo].cor(m) : '#ccc'; })
+    // com as setas ligadas o mapa fica em cinza claro neutro: a informação é a seta
+    paths.attr('fill', f => { const m = porIbge.get(f.properties.c); return setas !== 'nenhuma' ? '#eef0f3' : m ? modos[modo].cor(m) : '#ccc'; })
          .classed('sel', f => selecionado && f.properties.c === selecionado.ibge)
          .attr('fill-opacity', camadaLocais ? 0.3 : 1);
-    recolorirLocais(); desenharLocais();
+    recolorirLocais(); desenharLocais(); desenharSetas();
     const L = document.getElementById('legenda'), c = modos[modo].leg;
     if (!c) L.innerHTML = '<span><b style="color:#b71c1c">■</b> virou Flávio → Lula</span><span><b style="color:#0d47a1">■</b> virou Lula → Flávio</span><span><b style="color:#f3d2d2">■</b> Lula nos dois</span><span><b style="color:#d0e0f3">■</b> Flávio nos dois</span>';
     else {
@@ -227,6 +237,10 @@
         <span class="aviso-escala" style="flex-basis:100%">${escalaAuto ? '<b>Escala ajustada ao recorte</b> (limites cobrem 98% dos municípios). ' : 'Escala fixa, comparável entre recortes. '}Valores além das pontas aparecem na cor máxima. ${infoEscala()}</span>`;
     }
     if (!c) L.innerHTML += `<span class="i" ${ai('virada')}>ⓘ</span>`;
+    if (setas !== 'nenhuma') {
+      const n = contarSetas(), fmtN = x => x.toLocaleString('pt-BR');
+      L.innerHTML = `<span><span style="display:inline-block;width:16px;height:10px;background:#eef0f3;border:1px solid #b9c0ca;vertical-align:middle"></span> Mapa em cinza claro: a informação está nas setas. Desligue as setas para ver as camadas coloridas.</span><span style="flex-basis:100%">${setas !== 'flavio' ? `<b style="color:#c62828">←</b> pró-Lula: ${fmtN(n.l)} municípios` : ''}${setas === 'ambas' ? ' · ' : ''}${setas !== 'lula' ? `<b style="color:#1565c0">→</b> pró-Flávio: ${fmtN(n.f)} municípios` : ''} (Δ fatia de pelo menos ${minSeta.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} p.p.; tamanho proporcional ao valor) <span class="i" ${ai('setas')}>ⓘ</span></span>`;
+    }
     if (camadaLocais && LC) {
       const precisaT2 = ['m2', 'swing', 'fatia', 'virada', 'part'].includes(modo) && !temT2;
       L.innerHTML += `<span style="flex-basis:100%">${precisaT2 ? '<b>Locais de votação:</b> esta camada precisa do resultado do 2º turno por seção, que o TSE ainda não publicou (pontos em cinza).' : `Pontos = locais de votação (${LC.linhas.length.toLocaleString('pt-BR')}). Resultado por seção disponível: ${LC.turnos.map(t => t + 'º turno').join(' e ')}.`}</span>`;
@@ -244,6 +258,17 @@
   }
   const lbl = document.createElement('label'); lbl.title = 'Troca os limites fixos da escala pelos limites que cobrem 98% dos municípios do recorte atual';
   lbl.innerHTML = '<input type="checkbox" id="escalaAuto"> Ajustar escala ao recorte'; lbl.querySelector('input').onchange = e => { escalaAuto = e.target.checked; pintar(); }; mo.appendChild(lbl);
+  // Setas de deslocamento (Δ fatia): ver nenhuma, só pró-Lula (←), só pró-Flávio (→) ou as duas; mínimo ajustável
+  const gs = document.createElement('span'); gs.className = 'grupo';
+  const gl = document.createElement('span'); gl.className = 'gl'; gl.textContent = 'Setas:'; gl.dataset.info = AJUDA.setas; gs.appendChild(gl);
+  [['nenhuma', 'Nenhuma'], ['lula', '← Lula'], ['flavio', 'Flávio →'], ['ambas', 'Ambas']].forEach(([k, t]) => {
+    const b = document.createElement('button'); b.textContent = t; b.setAttribute('aria-pressed', k === setas);
+    b.onclick = () => { setas = k; gs.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); pintar(); }; gs.appendChild(b);
+  });
+  const ms = document.createElement('label'); ms.className = 'minseta'; ms.title = 'Deslocamento mínimo (Δ fatia, em p.p.) para a seta aparecer';
+  ms.innerHTML = 'mín. <input type="range" id="minSeta" min="0" max="5" step="0.5" value="3"> <output>3,0</output> p.p.';
+  ms.querySelector('input').oninput = e => { minSeta = +e.target.value; ms.querySelector('output').textContent = minSeta.toLocaleString('pt-BR', { minimumFractionDigits: 1 }); pintar(); };
+  gs.appendChild(ms); mo.appendChild(gs);
   const rz = document.createElement('button'); rz.textContent = 'Ver Brasil'; rz.onclick = () => { ufSel = null; regSel = null; aplicarEscopo(); }; mo.appendChild(rz);
   const UFNOME = { ac: 'Acre', al: 'Alagoas', ap: 'Amapá', am: 'Amazonas', ba: 'Bahia', ce: 'Ceará', df: 'Distrito Federal', es: 'Espírito Santo', go: 'Goiás', ma: 'Maranhão', mt: 'Mato Grosso', ms: 'Mato Grosso do Sul', mg: 'Minas Gerais', pa: 'Pará', pb: 'Paraíba', pr: 'Paraná', pe: 'Pernambuco', pi: 'Piauí', rj: 'Rio de Janeiro', rn: 'Rio Grande do Norte', rs: 'Rio Grande do Sul', ro: 'Rondônia', rr: 'Roraima', sc: 'Santa Catarina', sp: 'São Paulo', se: 'Sergipe', to: 'Tocantins', zz: 'Exterior' };
   const REGIOES = ['Norte', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul'];
@@ -283,6 +308,32 @@
   function zoomMun(m) {
     const f = m.ibge && feats.find(x => x.properties.c === m.ibge); if (!f) return zoomUF(m.uf);
     const [[x0, y0], [x1, y1]] = path.bounds(f); zoomCaixa(x0, y0, x1, y1, 40);
+  }
+
+  // ---------- Setas de deslocamento (canvas): ← vermelha = pró-Lula, → azul = pró-Flávio, pelo Δ fatia ----------
+  const cvS = document.getElementById('setas'), ctxS = cvS.getContext('2d');
+  { const dpr = window.devicePixelRatio || 1; cvS.width = W * dpr; cvS.height = H * dpr; ctxS.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  const centros = feats.map(f => { const m = porIbge.get(f.properties.c); if (!m || !m.ok) return null; const c = path.centroid(f); return Number.isFinite(c[0]) && Number.isFinite(c[1]) ? { x: c[0], y: c[1], m } : null; }).filter(Boolean);
+  const temSeta = m => (m.dsh >= minSeta && m.dsh > 0) ? 'l' : (m.dsh <= -minSeta && m.dsh < 0) ? 'f' : '';
+  function contarSetas() { let l = 0, f = 0; for (const c of centros) { if (!noEscopo(c.m)) continue; const s = temSeta(c.m); if (s === 'l') l++; else if (s === 'f') f++; } return { l, f }; }
+  function desenharSetas() {
+    ctxS.clearRect(0, 0, W, H); if (setas === 'nenhuma') return;
+    const t = d3.zoomTransform(svg.node()), k = t.k, fator = Math.min(1.8, 0.7 + 0.12 * k);
+    const grupos = { l: new Path2D(), f: new Path2D() };
+    for (const c of centros) {
+      if (!noEscopo(c.m)) continue;
+      const s = temSeta(c.m); if (!s || (s === 'l' && setas === 'flavio') || (s === 'f' && setas === 'lula')) continue;
+      const x = c.x * k + t.x, y = c.y * k + t.y; if (x < -12 || y < -12 || x > W + 12 || y > H + 12) continue;
+      const len = (4 + 8 * Math.min(1, Math.abs(c.m.dsh) / 10)) * fator, meio = len / 2, cab = Math.min(4.5, len * 0.45), dir = s === 'l' ? -1 : 1, p = grupos[s];
+      p.moveTo(x - dir * meio, y); p.lineTo(x + dir * meio, y);
+      p.moveTo(x + dir * meio, y); p.lineTo(x + dir * (meio - cab), y - cab * 0.75);
+      p.moveTo(x + dir * meio, y); p.lineTo(x + dir * (meio - cab), y + cab * 0.75);
+    }
+    ctxS.lineCap = 'round'; ctxS.lineJoin = 'round';
+    for (const [largura, cor] of [[3.6, 'rgba(255,255,255,.9)'], [1.5, null]]) {
+      ctxS.lineWidth = largura;
+      for (const s of ['l', 'f']) { ctxS.strokeStyle = cor ?? (s === 'l' ? '#c62828' : '#1565c0'); ctxS.stroke(grupos[s]); }
+    }
   }
 
   // ---------- Camada de locais de votação (canvas; 1 ponto por local) ----------
