@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Por que Lula virou no 2º turno</title>
+<style>
+%%FONTS%%
+/* Identidade Portofino (tema do template corporativo PMFO): Montserrat; verdes 0A2824 / 0A413B / 158775 / 05C18B.
+   Vermelho (Lula) e azul (Flávio) são cores de leitura do resultado, como no painel. */
+:root { --vd:#0A2824; --vm:#0A413B; --v1:#0B6257; --v2:#158775; --v3:#3ABAA4; --v4:#05C18B; --v5:#6EAC69; --v6:#ABC997; --bg:#D4D6C4; --L:#c62828; --F:#1565c0; --ink:#1b2430; --mut:#5d6877; --line:#dde2e9; }
+* { box-sizing:border-box; }
+html, body { margin:0; height:100%; background:#0b1512; font-family:Montserrat,"Segoe UI",system-ui,sans-serif; overflow:hidden; color:var(--ink); }
+#palco { position:absolute; left:0; top:0; width:1280px; height:720px; transform-origin:0 0; }
+.slide { position:absolute; inset:0; width:1280px; height:720px; background:#fff; display:none; overflow:hidden; }
+.slide.on { display:block; }
+.slide::before { content:""; position:absolute; left:0; top:0; right:0; height:8px; background:linear-gradient(90deg,var(--vd),var(--v2),var(--v4)); }
+.topo { position:absolute; left:56px; top:30px; width:1010px; }
+.kick { font-size:12px; font-weight:700; letter-spacing:1.4px; text-transform:uppercase; color:var(--v2); }
+.topo h2 { margin:4px 0 0; font-size:27px; line-height:1.2; font-weight:700; color:var(--vd); }
+.topo p { margin:6px 0 0; font-size:14px; color:var(--mut); line-height:1.4; }
+.sel { position:absolute; right:40px; top:26px; background:var(--vd); border-radius:6px; padding:7px 12px; }
+.sel img { height:22px; display:block; }
+.corpo { position:absolute; left:56px; right:56px; top:164px; bottom:46px; }
+.rod { position:absolute; left:56px; right:56px; bottom:14px; display:flex; justify-content:space-between; gap:20px; font-size:10.5px; color:#7b8696; border-top:1px solid var(--line); padding-top:6px; }
+.rod b { color:var(--v2); }
+.capa, .fim { background:var(--vd); color:#fff; }
+.capa::before, .fim::before { background:var(--v4); height:10px; }
+.capa .logo { position:absolute; left:70px; top:60px; height:62px; }
+.capa h1 { position:absolute; left:70px; top:230px; width:1000px; margin:0; font-size:56px; line-height:1.1; font-weight:700; }
+.capa h1 span { color:var(--v4); }
+.capa .sub { position:absolute; left:70px; top:420px; width:900px; font-size:20px; line-height:1.5; color:var(--v6); }
+.capa .data { position:absolute; left:70px; bottom:60px; font-size:13px; color:#9bb8ad; line-height:1.6; width:1100px; }
+.fim h2 { position:absolute; left:70px; top:200px; margin:0; font-size:36px; font-weight:700; width:1000px; line-height:1.2; }
+.fim .txt { position:absolute; left:70px; top:330px; width:1080px; font-size:15px; line-height:1.65; color:#cfe0d8; }
+.fim .logo { position:absolute; left:70px; top:60px; height:62px; }
+.kpis { display:grid; gap:14px; }
+.kpi { background:#f3f6f4; border-left:5px solid var(--v2); border-radius:6px; padding:12px 16px; }
+.kpi b { display:block; font-size:30px; line-height:1.1; color:var(--vd); font-weight:700; }
+.kpi span { display:block; margin-top:5px; font-size:13px; line-height:1.4; color:#33404d; }
+#sintese .kpi span { font-size:15px; } .kpi.L { border-color:var(--L); } .kpi.L b { color:var(--L); } .kpi.F { border-color:var(--F); } .kpi.F b { color:var(--F); }
+.box { background:#f3f6f4; border-radius:8px; padding:14px 18px; font-size:14px; line-height:1.55; }
+.box h4 { margin:0 0 6px; font-size:13px; letter-spacing:.6px; text-transform:uppercase; color:var(--v2); }
+.box ul { margin:0; padding-left:18px; } .box li { margin:4px 0; }
+.nota { font-size:12px; color:var(--mut); line-height:1.45; }
+.L { color:var(--L); } .F { color:var(--F); }
+svg text { font-family:Montserrat,"Segoe UI",sans-serif; }
+table.t { border-collapse:collapse; width:100%; font-size:12.5px; }
+table.t th { text-align:right; font-size:11px; color:var(--mut); font-weight:600; padding:5px 6px; border-bottom:2px solid var(--v2); }
+table.t th:first-child, table.t td:first-child { text-align:left; }
+table.t td { white-space:nowrap; text-align:right; padding:4px 6px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums; }
+.row { display:flex; gap:22px; } .col { flex:1; min-width:0; }
+.leg { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#33404d; align-items:center; }
+.leg i { display:inline-block; width:12px; height:12px; border-radius:2px; margin-right:5px; vertical-align:-2px; }
+.grad { height:10px; border-radius:5px; }
+.nav { position:fixed; right:14px; bottom:10px; display:flex; gap:6px; z-index:5; }
+.nav button { background:#0A413B; color:#fff; border:0; border-radius:6px; padding:6px 12px; font:600 13px Montserrat,sans-serif; cursor:pointer; opacity:.85; }
+.nav button:hover { opacity:1; }
+#contador { position:fixed; left:14px; bottom:12px; color:#9bb8ad; font:600 12px Montserrat,sans-serif; z-index:5; }
+@media print {
+  html, body { overflow:visible; background:#fff; height:auto; }
+  #palco { position:static; transform:none !important; width:auto; height:auto; }
+  .slide { display:block !important; position:relative; break-after:page; page-break-after:always; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .nav, #contador { display:none; }
+  @page { size:1280px 720px; margin:0; }
+}
+</style>
+</head>
+<body>
+<div id="palco"></div>
+<div id="contador"></div>
+<div class="nav"><button id="ant">←</button><button id="prox">→</button><button id="tela">Tela cheia</button></div>
+
+<script>%%D3%%</script>
+<script>window.R = %%ANALISE%%;</script>
+<script>%%MALHA%%</script>
+<script>
+(() => {
+const R = window.R, G = window.MALHA, LOGO = '%%LOGO%%';
+const B = R.brasil, S = R.semExterior, REG = Object.fromEntries(R.regioes.map(r => [r.k, r])), UF = Object.fromEntries(R.ufs.map(u => [u.k, u]));
+const f0 = n => Math.round(n).toLocaleString('pt-BR');
+const f1 = (n, d = 1) => n.toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d });
+const mi = (n, d = 2) => f1(n / 1e6, d) + ' mi';
+const mil = n => f0(n / 1e3) + ' mil';
+const pp = (n, d = 1) => (n > 0 ? '+' : n < 0 ? '−' : '') + f1(Math.abs(n), d) + ' p.p.';
+const pc = (n, d = 1) => f1(n, d) + '%';
+const nome = s => s.toLowerCase().replace(/(^|[\s-])([a-zà-ú])/g, (m, a, b) => a + b.toUpperCase()).replace(/\b(Da|De|Do|Das|Dos|E)\b/g, x => x.toLowerCase());
+const L = '#c62828', F = '#1565c0', VD = '#0A2824', VM = '#0A413B', V2 = '#158775', V3 = '#3ABAA4', V4 = '#05C18B', CZ = '#9aa6b5', CZL = '#d9dee5';
+const REGC = { Norte: '#6EAC69', Nordeste: '#e0a526', 'Centro-Oeste': '#8a6bbf', Sudeste: '#158775', Sul: '#3a7ca5' };
+const T1 = R.meta.atualizado.t1, T2 = R.meta.atualizado.t2;
+const FONTE = `Fonte: TSE, portal de resultados (1º turno ${T1}; 2º turno ${T2}); cálculo PMFO sobre a soma dos municípios. Dados podem estar desatualizados ou conter erros: conferir em resultados.tse.jus.br.`;
+const leadV1 = B.F1 - B.L1, leadV2 = B.L2 - B.F2;               // vantagem em votos: Flávio no 1º turno, Lula no 2º
+const totInc = B.dL + B.dF, shL = B.dL / totInc * 100;            // votos a mais dos dois finalistas e quanto ficou com Lula
+const base1 = B.L1 / (B.L1 + B.F1) * 100;                         // fatia de Lula entre os finalistas no 1º turno
+const sh = x => x / S.saldo * 100;                                // parcela do saldo líquido (sem exterior)
+const val2S = S.val2;
+
+// ---------- utilidades de gráfico ----------
+const mk = (id, w, h) => d3.select('#' + id).style('width', w + 'px').style('height', h + 'px').append('svg').attr('viewBox', `0 0 ${w} ${h}`).attr('width', w).attr('height', h);
+const txt = (s, x, y, t, o = {}) => s.append('text').attr('x', x).attr('y', y).attr('font-size', o.fs ?? 13).attr('fill', o.c ?? '#1b2430').attr('font-weight', o.w ?? 400).attr('text-anchor', o.a ?? 'start').attr('dominant-baseline', o.b ?? 'central').text(t);
+function hbars(id, rows, o) {
+  const w = o.w, h = o.h, lw = o.lw ?? 110, rw = o.rw ?? 80, s = mk(id, w, h), n = rows.length, t0 = o.ref != null ? 18 : 4, bh = (h - t0 - 4) / n;
+  const ext = d3.extent([0, ...rows.map(r => r.v)]); if (o.max != null) ext[1] = Math.max(ext[1], o.max); if (o.min != null) ext[0] = Math.min(ext[0], o.min);
+  const x = d3.scaleLinear().domain(ext).range([lw, w - rw]);
+  if (ext[0] < 0) s.append('line').attr('x1', x(0)).attr('x2', x(0)).attr('y1', 0).attr('y2', h).attr('stroke', '#888').attr('stroke-width', 1);
+  if (o.ref != null) { s.append('line').attr('x1', x(o.ref)).attr('x2', x(o.ref)).attr('y1', 0).attr('y2', h).attr('stroke', VM).attr('stroke-dasharray', '4 3'); txt(s, x(o.ref), 7, o.refl, { fs: 11, c: VM, a: 'middle', w: 600 }); }
+  rows.forEach((r, i) => {
+    const y = t0 + i * bh;
+    txt(s, lw - 8, y + bh / 2, r.l, { a: 'end', fs: o.fs ?? 13, w: r.b ? 700 : 400 });
+    s.append('rect').attr('x', Math.min(x(0), x(r.v))).attr('y', y + bh * .15).attr('width', Math.max(1, Math.abs(x(r.v) - x(0)))).attr('height', bh * .7).attr('rx', 3).attr('fill', r.c ?? o.c ?? V2);
+    txt(s, r.v >= 0 ? x(r.v) + 6 : x(r.v) - 6, y + bh / 2, o.fmt(r.v), { a: r.v >= 0 ? 'start' : 'end', fs: o.fs ?? 13, w: 600 });
+  });
+}
+function cols(id, groups, series, o) { // groups: [{l, v:[..]}]; series: [{n, c}]
+  const w = o.w, h = o.h, pad = { l: 44, r: 10, t: 24, b: 38 }, s = mk(id, w, h);
+  const y = d3.scaleLinear().domain([o.min ?? 0, o.max ?? d3.max(groups, g => d3.max(g.v)) * 1.12]).range([h - pad.b, pad.t]);
+  const x0 = d3.scaleBand().domain(groups.map(g => g.l)).range([pad.l, w - pad.r]).padding(.22), x1 = d3.scaleBand().domain(series.map((_, i) => i)).range([0, x0.bandwidth()]).padding(.08);
+  y.ticks(5).forEach(t => { s.append('line').attr('x1', pad.l).attr('x2', w - pad.r).attr('y1', y(t)).attr('y2', y(t)).attr('stroke', '#e6eaee'); txt(s, pad.l - 6, y(t), o.tick ? o.tick(t) : f0(t), { a: 'end', fs: 11, c: '#7b8696' }); });
+  groups.forEach(g => {
+    g.v.forEach((v, i) => {
+      const bx = x0(g.l) + x1(i), by = y(Math.max(v, 0)), bh = Math.abs(y(v) - y(0));
+      s.append('rect').attr('x', bx).attr('y', by).attr('width', x1.bandwidth()).attr('height', bh).attr('rx', 2).attr('fill', series[i].c);
+      txt(s, bx + x1.bandwidth() / 2, by - 9, o.fmt(v), { a: 'middle', fs: o.fs ?? 12, w: 600 });
+    });
+    txt(s, x0(g.l) + x0.bandwidth() / 2, h - pad.b + 16, g.l, { a: 'middle', fs: 12.5, w: 600 });
+    if (g.note) txt(s, x0(g.l) + x0.bandwidth() / 2, h - pad.b + 31, g.note, { a: 'middle', fs: 11, c: g.nc ?? V2, w: 700 });
+  });
+  return s;
+}
+function stack1(id, parts, w, h, o = {}) {
+  const s = mk(id, w, h), t = d3.sum(parts, p => p.v); let x = 0;
+  parts.forEach(p => {
+    const pw = p.v / t * w; s.append('rect').attr('x', x).attr('y', 0).attr('width', pw).attr('height', h).attr('fill', p.c);
+    if (pw > (o.min ?? 70)) txt(s, x + pw / 2, h / 2, p.l, { a: 'middle', fs: o.fs ?? 13, c: p.tc ?? '#fff', w: 700 }); x += pw;
+  });
+}
+// mapa: mesma projeção plana (Mercator) do painel; as caminhos são calculadas uma vez
+const merc = (lon, lat) => [lon * Math.PI / 180, -Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360))];
+const plano = (k, tx, ty) => d3.geoTransform({ point(x, y) { const p = merc(x, y); this.stream.point(p[0] * k + tx, p[1] * k + ty); } });
+const MW = 440, MH = 440;
+const [[bx0, by0], [bx1, by1]] = d3.geoPath(plano(1, 0, 0)).bounds(G), kk = Math.min(MW / (bx1 - bx0), MH / (by1 - by0)) * .97;
+const geo = d3.geoPath(plano(kk, (MW - (bx1 - bx0) * kk) / 2 - bx0 * kk, (MH - (by1 - by0) * kk) / 2 - by0 * kk));
+const FEATS = G.features.map(f => ({ c: f.properties.c, d: geo(f), ct: geo.centroid(f) }));
+const MAPA = new Map(R.mapa.map(r => [r[0], r]));
+function desenharMapa(id, fill, extra) {
+  const s = mk(id, MW, MH);
+  s.append('g').selectAll('path').data(FEATS).join('path').attr('d', f => f.d).attr('fill', f => fill(MAPA.get(f.c))).attr('stroke', '#fff').attr('stroke-width', .15);
+  if (extra) extra(s);
+}
+const rdbu = (v, lim) => d3.interpolateRdBu(Math.max(0, Math.min(1, (lim - v) / (2 * lim))));
+
+// ---------- slides ----------
+const slides = [];
+const slide = (kick, titulo, sub, corpo, draw, o = {}) => slides.push({ kick, titulo, sub, corpo, draw, ...o });
+
+// 1. capa
+slides.push({ capa: true, html: () => `<section class="slide capa"><img class="logo" src="${LOGO}" alt="Portofino"><h1>Por que Lula <span>virou</span> no 2º turno</h1>
+<div class="sub">Análise por município dos resultados da eleição presidencial de 2026: regiões, estados, capitais, tamanho dos municípios, viradas e abstenção.</div>
+<div class="data">Dados do TSE: 1º turno em 04/10/2026 (apuração ${T1}) e 2º turno em 25/10/2026 (apuração ${T2}).<br>Elaboração PMFO · ${new Date(R.meta.geradoEm).toLocaleDateString('pt-BR')}. Os dados podem estar desatualizados ou conter erros; conferir na fonte oficial (resultados.tse.jus.br).</div></section>` });
+
+// 2. resumo
+slide('Resumo', 'A virada foi ampla: Lula ficou com cerca de três em cada quatro votos a mais dos finalistas',
+  'Oito números que resumem o que os dados mostram',
+  `<div class="kpis" style="grid-template-columns:repeat(4,1fr)">
+  <div class="kpi F"><b>−${mi(leadV1)}</b><span>Flávio liderava por esse saldo de votos no 1º turno (margem de ${pp(B.m1, 2)} dos válidos)</span></div>
+  <div class="kpi L"><b>+${mi(leadV2)}</b><span>Lula venceu o 2º turno por esse saldo (margem de ${pp(B.m2, 2)}). Virada de ${mi(B.saldo)} de votos</span></div>
+  <div class="kpi"><b>${pc(shL)}</b><span>dos ${mi(totInc, 1)} votos a mais dos finalistas foram para Lula; no 1º turno a fatia dele entre os dois era ${pc(base1)}</span></div>
+  <div class="kpi"><b>${pc(S.pmunPro)}</b><span>dos municípios (${f0(S.nPro)} de ${f0(S.nOk)}) deslocaram o resultado a favor de Lula em 3 p.p. ou mais, e eles concentram ${pc(S.pvotPro)} dos votos válidos. Só ${S.nCon} foram pró-Flávio</span></div>
+  <div class="kpi"><b>${pc(sh(REG.Sudeste.saldo), 0)} + ${pc(sh(REG.Nordeste.saldo), 0)}</b><span>do saldo líquido vieram do Sudeste e do Nordeste. O Sudeste teve o maior deslocamento (${pp(REG.Sudeste.dfatia)}) e Minas Gerais mudou de lado</span></div>
+  <div class="kpi"><b>${pc(sh(R.saldoPorGrupo.faixas[3].saldo), 0)}</b><span>do saldo veio dos ${R.faixas[3].n} municípios com mais de 200 mil eleitores; as 27 capitais somam ${pc(sh(R.capitaisAgg.saldo), 0)} com ${pc(R.capitaisAgg.val2 / val2S * 100, 0)} dos votos válidos</span></div>
+  <div class="kpi"><b>${S.viradas}</b><span>municípios mudaram de líder (${f0(S.viradasFL)} de Flávio para Lula), mas respondem por só ${pc(sh(R.viradasAgg.saldo), 0)} do saldo: a vitória não depende de poucas viradas</span></div>
+  <div class="kpi"><b>${pc(B.abs1)} → ${pc(B.abs2)}</b><span>abstenção. ${mi(B.dComp)} de eleitores a mais votaram, mas o efeito sobre o resultado é parcial (ver slide de abstenção)</span></div>
+  </div><div class="nota" style="margin-top:12px"><b>Δ fatia</b> = variação de Lula ÷ (Lula + Flávio) entre os turnos, em pontos percentuais (ignora os outros candidatos do 1º turno). <b>Saldo</b> = votos que Lula ganhou a mais que Flávio entre os turnos (Δ Lula − Δ Flávio). Percentuais do saldo calculados sem o exterior.</div>`);
+
+// 3. tamanho da virada
+slide('A virada em votos', `Flávio saiu na frente por ${mi(leadV1)} de votos e Lula fechou o 2º turno ${mi(leadV2)} à frente`,
+  'Diferença de votos entre Lula e Flávio em cada turno (votos de cada finalista) e composição dos votos válidos',
+  `<div class="row"><div class="col" style="flex:1.15"><div id="g3a"></div></div><div class="col" style="flex:1">
+   <div class="nota" style="margin-bottom:6px"><b>Votos válidos em cada turno</b></div>
+   <div id="g3b"></div><div class="leg" style="margin:6px 0 18px"><span><i style="background:${L}"></i>Lula</span><span><i style="background:#9aa6b5"></i>Outros candidatos</span><span><i style="background:${F}"></i>Flávio</span></div>
+   <div id="g3c"></div>
+   <div class="box" style="margin-top:20px"><h4>Leitura</h4><ul><li>No 1º turno ${pc(B.O1 / B.val1 * 100)} dos votos válidos foram para outros candidatos: era a disputa pelo voto desse grupo que definiria o 2º turno.</li><li>A margem passou de ${pp(B.m1, 2)} para ${pp(B.m2, 2)}: swing de ${pp(B.swing, 2)} (Δ fatia de ${pp(B.dfatia, 2)}, que desconta os outros candidatos).</li></ul></div></div></div>`,
+  () => {
+    const s = mk('g3a', 560, 360), x = d3.scaleLinear().domain([-3e6, 5e6]).range([20, 540]), cy = [110, 250];
+    s.append('line').attr('x1', x(0)).attr('x2', x(0)).attr('y1', 30).attr('y2', 330).attr('stroke', '#888');
+    [[`1º turno`, -leadV1, F], [`2º turno`, leadV2, L]].forEach(([t, v, c], i) => {
+      s.append('rect').attr('x', Math.min(x(0), x(v))).attr('y', cy[i] - 38).attr('width', Math.abs(x(v) - x(0))).attr('height', 76).attr('rx', 4).attr('fill', c);
+      txt(s, v < 0 ? x(v) + 10 : x(v) - 10, cy[i] - 8, (v > 0 ? '+' : '−') + mi(Math.abs(v)), { c: '#fff', fs: 24, w: 700, a: v < 0 ? 'start' : 'end' });
+      txt(s, v < 0 ? x(v) + 10 : x(v) - 10, cy[i] + 20, v < 0 ? 'Flávio na frente' : 'Lula na frente', { c: '#fff', fs: 13, a: v < 0 ? 'start' : 'end' });
+      txt(s, x(0) + (v < 0 ? 10 : -10), cy[i] - 38 - 12, t, { fs: 14, w: 700, c: VD, a: v < 0 ? 'start' : 'end' });
+    });
+    s.append('path').attr('d', `M${x(-leadV1)} 175 C ${x(-leadV1)} 205, ${x(leadV2)} 175, ${x(leadV2)} 205`).attr('fill', 'none').attr('stroke', VM).attr('stroke-width', 1.5).attr('stroke-dasharray', '5 4');
+    txt(s, 280, 342, `Virada líquida: ${mi(B.saldo)} de votos (Δ Lula − Δ Flávio)`, { a: 'middle', fs: 13, w: 700, c: VM });
+    stack1('g3b', [{ v: B.L1, c: L, l: pc(B.L1 / B.val1 * 100) }, { v: B.O1, c: '#9aa6b5', l: pc(B.O1 / B.val1 * 100) }, { v: B.F1, c: F, l: pc(B.F1 / B.val1 * 100) }], 560, 38);
+    stack1('g3c', [{ v: B.L2, c: L, l: pc(B.L2 / B.val2 * 100) }, { v: B.F2, c: F, l: pc(B.F2 / B.val2 * 100) }], 560, 38);
+  });
+
+// 4. de onde vieram os votos
+slide('De onde vieram os votos', `Lula ganhou ${mi(B.dL)} de votos entre os turnos e Flávio ${mi(B.dF)}: ${pc(shL, 0)} do acréscimo ficou com Lula`,
+  'Votos de cada finalista nos dois turnos e decomposição dos votos que os dois finalistas ganharam',
+  `<div class="row"><div class="col"><div class="nota"><b>Votos de cada finalista (milhões)</b></div><div id="g4a"></div><div class="leg"><span><i style="background:#c5ccd6"></i>1º turno</span><span><i style="background:${VM}"></i>2º turno</span></div></div>
+  <div class="col"><div class="nota"><b>Os ${mi(totInc, 1)} votos a mais dos finalistas vieram de</b></div><div id="g4b" style="margin-top:8px"></div>
+  <div class="leg" style="margin-top:8px"><span><i style="background:${VM}"></i>Eleitores de outros candidatos no 1º turno</span><span><i style="background:${V3}"></i>Comparecimento a mais</span><span><i style="background:#ABC997"></i>Brancos e nulos que passaram a votar</span></div>
+  <div class="nota" style="margin:26px 0 8px"><b>E ficaram com</b></div><div id="g4c"></div>
+  <div class="box" style="margin-top:20px"><h4>Leitura</h4><ul><li>Se o acréscimo fosse dividido como no 1º turno entre os finalistas, Lula levaria ${pc(base1, 0)}; levou ${pc(shL, 0)}, ou cerca de três votos para cada um de Flávio.</li><li>É um saldo entre turnos, não migração: o voto é secreto e o painel não identifica quem votou em quem.</li></ul></div></div></div>`,
+  () => {
+    cols('g4a', [{ l: 'Lula', v: [B.L1 / 1e6, B.L2 / 1e6], note: `+${mi(B.dL)}`, nc: L }, { l: 'Flávio', v: [B.F1 / 1e6, B.F2 / 1e6], note: `+${mi(B.dF)}`, nc: F }], [{ c: '#c5ccd6' }, { c: VM }], { w: 560, h: 380, fmt: v => f1(v, 1), tick: t => t, max: 70, fs: 13 });
+    stack1('g4b', [{ v: B.O1, c: VM, l: mi(B.O1, 1) }, { v: B.dComp, c: V3, l: mi(B.dComp, 1), tc: '#06241e' }, { v: B.dBn, c: '#ABC997', l: mi(B.dBn, 1), tc: '#06241e' }], 560, 44, { min: 50 });
+    stack1('g4c', [{ v: B.dL, c: L, l: `Lula ${pc(shL)}` }, { v: B.dF, c: F, l: `Flávio ${pc(100 - shL)}` }], 560, 44);
+  });
+
+// 5. mapa Δ fatia
+const gradCss = (lim) => 'linear-gradient(90deg,' + d3.range(0, 1.01, .1).map(t => rdbu(-lim + 2 * lim * t, lim)).join(',') + ')';
+slide('Onde o resultado se deslocou', `O deslocamento pró-Lula está espalhado pelo país e é maior no Sudeste, no Centro-Oeste e no Sul`,
+  'Δ fatia por município: variação de Lula ÷ (Lula + Flávio) entre o 1º e o 2º turno (cor vermelha = a favor de Lula)',
+  `<div class="row"><div class="col" style="flex:none;width:460px"><div id="g5"></div><div style="width:360px;margin:2px auto 0"><div class="grad" style="background:${gradCss(8)}"></div><div style="display:flex;justify-content:space-between;font-size:11px;color:#5d6877"><span>−8 p.p. (Flávio)</span><span>0</span><span>+8 p.p. (Lula)</span></div></div></div>
+  <div class="col"><div class="kpis" style="grid-template-columns:1fr 1fr">
+   <div class="kpi"><b>${pc(S.pmunPro, 0)}</b><span>dos municípios com Δ fatia de pelo menos +3 p.p.</span></div>
+   <div class="kpi"><b>${pc(S.pvotPro, 0)}</b><span>dos votos válidos do 2º turno estão nesses municípios</span></div></div>
+   <div class="box" style="margin-top:14px"><h4>O que se vê</h4><ul>
+    <li>Quase todo o mapa é vermelho: só <b>${S.nCon}</b> municípios se deslocaram a favor de Flávio em 3 p.p. ou mais.</li>
+    <li>O deslocamento é maior no <b>Sudeste</b> (${pp(REG.Sudeste.dfatia)}), no <b>Centro-Oeste</b> (${pp(REG['Centro-Oeste'].dfatia)}) e no <b>Sul</b> (${pp(REG.Sul.dfatia)}), onde Flávio liderava.</li>
+    <li>No <b>Nordeste</b> a cor é mais clara (${pp(REG.Nordeste.dfatia)}): Lula já tinha ${pc(REG.Nordeste.L1 / REG.Nordeste.val1 * 100, 0)} dos válidos no 1º turno e tinha pouco espaço para crescer na fatia.</li>
+    <li>Os mais intensos: ${R.topFatiaL.slice(0, 3).map(m => `${nome(m.nome)}/${m.uf.toUpperCase()} (${pp(m.dsh)})`).join(', ')} (municípios com ≥ 10 mil válidos).</li></ul></div>
+   <div class="nota" style="margin-top:10px">Mapa sem divisas estaduais. Boa Esperança do Norte/MT e o exterior não aparecem no mapa, mas entram nos totais.</div></div></div>`,
+  () => desenharMapa('g5', r => r ? rdbu(r[1], 8) : '#ccc'));
+
+// 6. regiões
+slide('Regiões', 'Sudeste e Nordeste somam mais de 80% do saldo; o Sudeste foi quem mais se deslocou',
+  'Deslocamento (Δ fatia) e contribuição de cada região para o saldo líquido de votos de Lula (sem o exterior)',
+  `<div class="row"><div class="col"><div class="nota"><b>Δ fatia por região (p.p.)</b></div><div id="g6a"></div>
+   <div class="nota" style="margin-top:14px"><b>% do saldo líquido × % dos votos válidos</b></div><div id="g6b"></div>
+   <div class="leg"><span><i style="background:${V2}"></i>% do saldo de Lula</span><span><i style="background:#c5ccd6"></i>% dos votos válidos do 2º turno</span></div></div>
+  <div class="col" style="flex:.95"><div class="box"><h4>Exemplos regionais</h4><ul>
+   <li><b>Sudeste</b> (${pc(sh(REG.Sudeste.saldo), 0)} do saldo): Lula +${mi(REG.Sudeste.dL)} contra Flávio +${mi(REG.Sudeste.dF)}; ${REG.Sudeste.viradas} viradas e margem de ${pp(REG.Sudeste.m1)} para ${pp(REG.Sudeste.m2)}.</li>
+   <li><b>Nordeste</b> (${pc(sh(REG.Nordeste.saldo), 0)}): Lula +${mi(REG.Nordeste.dL)} e Flávio só +${mi(REG.Nordeste.dF)}; ampliou a vantagem de ${pp(REG.Nordeste.m1)} para ${pp(REG.Nordeste.m2)}, com comparecimento +${mil(REG.Nordeste.dComp)}.</li>
+   <li><b>Norte</b>: margem de ${pp(REG.Norte.m1)} para ${pp(REG.Norte.m2)} (empate). Lula +${mil(REG.Norte.dL)} e Flávio +${mil(REG.Norte.dF)}, mesmo com ${mil(-REG.Norte.dComp)} eleitores a menos votando.</li>
+   <li><b>Centro-Oeste e Sul</b>: Flávio manteve a liderança (${pp(REG['Centro-Oeste'].m2)} e ${pp(REG.Sul.m2)}), mas a margem encolheu ${f1(REG['Centro-Oeste'].swing)} e ${f1(REG.Sul.swing)} p.p.; juntas pesam ${pc(sh(REG['Centro-Oeste'].saldo + REG.Sul.saldo), 0)} do saldo.</li></ul></div>
+   <div class="nota" style="margin-top:10px">O deslocamento (Δ fatia) é maior onde Lula tinha menos votos; o saldo em votos é maior onde há muitos eleitores e base grande (Sudeste e Nordeste).</div></div></div>`,
+  () => {
+    const ordem = ['Sudeste', 'Centro-Oeste', 'Sul', 'Norte', 'Nordeste'];
+    hbars('g6a', ordem.map(k => ({ l: k, v: REG[k].dfatia, c: REGC[k] })), { w: 560, h: 190, lw: 110, fmt: v => pp(v), ref: B.dfatia, refl: `Brasil ${pp(B.dfatia)}`, max: 5 });
+    cols('g6b', ordem.map(k => ({ l: k, v: [sh(REG[k].saldo), REG[k].val2 / val2S * 100] })), [{ c: V2 }, { c: '#c5ccd6' }], { w: 560, h: 200, fmt: v => pc(v, 0), tick: t => t + '%', fs: 12, max: 52 });
+  });
+
+// 7. estados
+const ufsSaldo = [...R.ufs].sort((a, b) => b.saldo - a.saldo);
+const mg = UF.mg, flips = R.ufs.filter(u => Math.sign(u.m1) !== Math.sign(u.m2));
+slide('Estados', `Minas Gerais foi o único estado que trocou de lado; São Paulo, Minas e Rio somam ${pc(sh(UF.sp.saldo + UF.mg.saldo + UF.rj.saldo), 0)} do saldo`,
+  'Saldo líquido de votos de Lula entre os turnos (esq.) e deslocamento Δ fatia (dir.) por estado',
+  `<div class="row"><div class="col"><div class="nota"><b>Saldo líquido de votos de Lula, 14 maiores estados (mil)</b></div><div id="g7a"></div></div>
+  <div class="col"><div class="nota"><b>Δ fatia por estado (p.p.), do maior ao menor</b></div><div id="g7b"></div></div></div>
+  <div class="leg" style="margin:2px 0 8px">${Object.entries(REGC).map(([k, c]) => `<span><i style="background:${c}"></i>${k}</span>`).join('')}</div><div class="box"><ul style="columns:2;column-gap:30px"><li><b>Minas Gerais</b>: margem de ${pp(mg.m1)} para ${pp(mg.m2)}; ${mg.viradas} municípios viraram (mais que qualquer outro estado) e saldo de ${mil(mg.saldo)}.</li>
+   <li><b>Rio de Janeiro</b>: maior Δ fatia entre os grandes (${pp(UF.rj.dfatia)}); ${pc(UF.rj.pmunPro, 0)} dos municípios com deslocamento pró-Lula ≥ 3 p.p.</li>
+   <li><b>Bahia</b>: Δ fatia de só ${pp(UF.ba.dfatia)}, mas saldo de ${mil(UF.ba.saldo)} (4º do país), pela base grande e comparecimento maior.</li>
+   <li><b>Acre, Amapá e Roraima</b>: abstenção subiu mais de 5 p.p. e, mesmo assim, Lula ganhou ${pp(UF.ac.dfatia)}, ${pp(UF.ap.dfatia)} e ${pp(UF.rr.dfatia)} de fatia.</li></ul></div>`,
+  () => {
+    hbars('g7a', ufsSaldo.slice(0, 14).map(u => ({ l: u.k.toUpperCase(), v: u.saldo / 1e3, c: REGC[u.regiao], b: u.k === 'mg' })), { w: 560, h: 340, lw: 50, rw: 70, fmt: v => f0(v), fs: 12 });
+    const od = [...R.ufs].sort((a, b) => b.dfatia - a.dfatia);
+    hbars('g7b', od.map(u => ({ l: u.k.toUpperCase(), v: u.dfatia, c: REGC[u.regiao], b: u.k === 'mg' })), { w: 560, h: 340, lw: 36, rw: 56, fmt: v => f1(v), fs: 11 });
+  },
+  );
+
+// 8. capitais
+const cap = R.capitais, capPro = cap.filter(c => c.dsh >= 3).length;
+slide('Capitais', `As 27 capitais pesaram ${pc(sh(R.capitaisAgg.saldo), 0)} do saldo com ${pc(R.capitaisAgg.val2 / val2S * 100, 0)} dos votos, e ${cap.filter(c => c.viradas).length} delas mudaram de líder`,
+  'Cada bolha é uma capital: eixo horizontal = margem do 1º turno; vertical = Δ fatia; tamanho = votos válidos do 2º turno',
+  `<div class="row"><div class="col" style="flex:none;width:690px"><div id="g8"></div><div class="leg" style="margin-top:4px">${Object.entries(REGC).map(([k, c]) => `<span><i style="background:${c}"></i>${k}</span>`).join('')}</div></div>
+  <div class="col"><div class="kpis" style="grid-template-columns:1fr 1fr"><div class="kpi"><b>${pp(R.capitaisAgg.dfatia)}</b><span>Δ fatia das capitais, contra ${pp(R.interiorAgg.dfatia)} nos demais municípios</span></div>
+  <div class="kpi"><b>${capPro} de 27</b><span>capitais com deslocamento pró-Lula de 3 p.p. ou mais (${pc(capPro / 27 * 100, 0)}; nos demais, ${pc(R.interiorAgg.pmunPro, 0)})</span></div></div>
+  <div class="box" style="margin-top:12px"><h4>Capitais em destaque</h4><ul>
+   <li><b>São Paulo</b>: maior saldo do país (+${mil(cap[0].saldo)}); Lula já liderava (${pp(cap[0].m1)}) e foi a ${pp(cap[0].m2)}.</li>
+   <li><b>Rio de Janeiro</b>: virou de Flávio para Lula (${pp(cap.find(c => c.nome === 'RIO DE JANEIRO').m1)} para ${pp(cap.find(c => c.nome === 'RIO DE JANEIRO').m2)}), saldo de ${mil(cap.find(c => c.nome === 'RIO DE JANEIRO').saldo)}.</li>
+   <li><b>Macapá</b>: virou com a abstenção subindo (comparecimento ${pp(cap.find(c => c.nome === 'MACAPÁ').dPart)}).</li>
+   <li><b>Salvador</b>: +${mil(cap.find(c => c.nome === 'SALVADOR').saldo)} de saldo e comparecimento ${pp(cap.find(c => c.nome === 'SALVADOR').dPart)}.</li>
+   <li><b>Maceió</b>: maior Δ fatia (${pp(cap.find(c => c.nome === 'MACEIÓ').dsh)}); <b>Teresina</b>, o menor (${pp(cap.find(c => c.nome === 'TERESINA').dsh)}), com Lula em ${pp(cap.find(c => c.nome === 'TERESINA').m2)}.</li></ul></div></div></div>`,
+  () => {
+    const w = 690, h = 410, pad = { l: 56, r: 16, t: 14, b: 44 }, s = mk('g8', w, h);
+    const x = d3.scaleLinear().domain([-60, 55]).range([pad.l, w - pad.r]), y = d3.scaleLinear().domain([1.5, 4.5]).range([h - pad.b, pad.t]), r = d3.scaleSqrt().domain([0, 7e6]).range([0, 36]);
+    y.ticks(6).forEach(t => { s.append('line').attr('x1', pad.l).attr('x2', w - pad.r).attr('y1', y(t)).attr('y2', y(t)).attr('stroke', '#e6eaee'); txt(s, pad.l - 6, y(t), f1(t), { a: 'end', fs: 11, c: '#7b8696' }); });
+    x.ticks(8).forEach(t => txt(s, x(t), h - pad.b + 14, (t > 0 ? '+' : t < 0 ? '−' : '') + Math.abs(t), { a: 'middle', fs: 11, c: '#7b8696' }));
+    s.append('line').attr('x1', x(0)).attr('x2', x(0)).attr('y1', pad.t).attr('y2', h - pad.b).attr('stroke', '#888').attr('stroke-dasharray', '3 3');
+    txt(s, x(-58), h - pad.b + 32, '← Flávio na frente no 1º turno', { fs: 11.5, c: F, w: 600 }); txt(s, x(53), h - pad.b + 32, 'Lula na frente no 1º turno →', { fs: 11.5, c: L, w: 600, a: 'end' });
+    txt(s, 12, h / 2, 'Δ fatia (p.p.)', { fs: 11.5, c: '#5d6877', a: 'middle' }).attr('transform', `rotate(-90 12 ${h / 2})`);
+    [...cap].sort((a, b) => b.val2 - a.val2).forEach(c => {
+      s.append('circle').attr('cx', x(c.m1)).attr('cy', y(c.dsh)).attr('r', r(c.val2)).attr('fill', REGC[c.regiao]).attr('fill-opacity', .7).attr('stroke', c.viradas ? '#000' : '#fff').attr('stroke-width', c.viradas ? 2.2 : 1);
+      const pos = { 'SÃO PAULO': 'b', 'MACAPÁ': 'b', 'RIO DE JANEIRO': 't', 'MACEIÓ': 't', 'TERESINA': 't', 'BOA VISTA': 't', 'MANAUS': 't', 'SALVADOR': 't' }[c.nome];
+      if (pos) { const rr = r(c.val2) + 7, tx = nome(c.nome) + (c.viradas ? ' (virou)' : ''); if (pos === 'l') txt(s, x(c.m1) - rr + 1, y(c.dsh), tx, { a: 'end', fs: 11.5, w: 600 }); else txt(s, x(c.m1), y(c.dsh) + (pos === 't' ? -rr : rr), tx, { a: 'middle', fs: 11.5, w: 600 }); }
+    });
+  });
+
+// 9. tamanho
+const fx = R.faixas;
+slide('Tamanho dos municípios', `Quanto maior o município, maior o deslocamento pró-Lula: as ${fx[3].n} maiores cidades somam ${pc(sh(fx[3].saldo), 0)} do saldo`,
+  'Municípios agrupados pelo número de eleitores aptos (sem o exterior)',
+  `<div class="row"><div class="col"><div class="nota"><b>Δ fatia por faixa de tamanho (p.p.)</b></div><div id="g9a"></div>
+   <div class="nota" style="margin-top:14px"><b>% dos municípios da faixa com deslocamento pró-Lula ≥ 3 p.p.</b></div><div id="g9b"></div></div>
+  <div class="col"><div class="nota"><b>% do saldo de Lula × % dos votos válidos, por faixa</b></div><div id="g9c"></div>
+   <div class="leg"><span><i style="background:${V2}"></i>% do saldo de Lula</span><span><i style="background:#c5ccd6"></i>% dos votos válidos</span></div>
+   <div class="box" style="margin-top:14px"><h4>Leitura</h4><ul>
+    <li><b>Mais de 200 mil eleitores</b> (${fx[3].n} municípios, ${pc(fx[3].val2 / val2S * 100, 0)} dos votos): margem de ${pp(fx[3].m1)} para ${pp(fx[3].m2)}; só ${fx[3].viradas} viradas, mas incluem o Rio e pesam ${pc(R.viradasAgg.val2 > 0 ? R.viradasPorFaixa[3].val2 / R.viradasAgg.val2 * 100 : 0, 0)} dos votos válidos de todos os municípios que viraram.</li>
+    <li><b>Até 10 mil</b> (${f0(fx[0].n)} municípios, ${pc(fx[0].val2 / val2S * 100, 0)} dos votos): Lula já liderava (${pp(fx[0].m1)}) e o deslocamento foi o menor (${pp(fx[0].dfatia)}); ${fx[0].viradas} viradas, ${pc(fx[0].viradas / fx[0].n * 100, 1)} da faixa.</li>
+    <li>Metade do saldo positivo acumulado vem de só <b>${R.concentracao.nPara50}</b> municípios, entre os ${f0(R.concentracao.nMunComSaldoPos)} em que Lula ganhou mais votos que Flávio.</li></ul></div></div></div>`,
+  () => {
+    const fc = ['#9cc9bf', '#5fb0a1', V2, VM];
+    hbars('g9a', fx.map((f, i) => ({ l: f.nome, v: f.dfatia, c: fc[i] })), { w: 560, h: 170, lw: 120, fmt: v => pp(v), ref: B.dfatia, refl: `Brasil ${pp(B.dfatia)}`, max: 4.5 });
+    hbars('g9b', fx.map((f, i) => ({ l: f.nome, v: f.pmunPro, c: fc[i] })), { w: 560, h: 170, lw: 120, fmt: v => pc(v, 0), max: 100 });
+    cols('g9c', fx.map(f => ({ l: f.nome.replace('Mais de ', '> ').replace('Até ', '≤ '), v: [sh(f.saldo), f.val2 / val2S * 100] })), [{ c: V2 }, { c: '#c5ccd6' }], { w: 560, h: 250, fmt: v => pc(v, 0), tick: t => t + '%', max: 50 });
+  });
+
+// 10. margem 1º turno
+const pm = R.porMargem1, saldoTot = d3.sum(pm, g => g.saldo);
+slide('Onde Lula era mais fraco', 'Onde Flávio era mais forte, a fatia de Lula cresceu mais; onde Lula já era forte, cresceu menos mas deu mais votos',
+  'Municípios agrupados pela margem do 1º turno (Lula − Flávio, sobre os votos válidos); sem o exterior',
+  `<div class="row"><div class="col"><div class="nota"><b>Δ fatia por margem do 1º turno (p.p.)</b></div><div id="g10a"></div>
+   <div class="nota" style="margin-top:14px"><b>Saldo líquido de votos de Lula (mil) e nº de municípios</b></div><div id="g10b"></div></div>
+  <div class="col" style="flex:.8"><div class="box"><h4>Leitura</h4><ul>
+   <li>O deslocamento cai de ${pp(pm[0].dfatia)} (Flávio com mais de 20 p.p.) para ${pp(pm[4].dfatia)} (Lula com mais de 20 p.p.). A correlação entre a margem do 1º turno e o Δ fatia, município a município, é ${f1(R.correl.m1_dsh, 2)}.</li>
+   <li>Parte disso é efeito teto: quem já tem fatia alta tem pouco espaço para crescer. Também é a convergência esperada entre turnos, quando os dois finalistas disputam os votos dos outros candidatos.</li>
+   <li>Em votos, os ${f0(pm[4].n)} municípios onde Lula tinha mais de 20 p.p. de vantagem renderam ${mil(pm[4].saldo)} de saldo (${pc(pm[4].saldo / saldoTot * 100, 0)}); os ${f0(pm[0].n)} onde Flávio liderava por mais de 20 p.p. renderam ${mil(pm[0].saldo)} (${pc(pm[0].saldo / saldoTot * 100, 0)}).</li>
+   <li>Nos municípios equilibrados (±5 p.p.), ${pc(pm[2].pmunPro, 0)} se deslocaram pró-Lula em 3 p.p. ou mais.</li></ul></div></div></div>`,
+  () => {
+    const cc = [F, '#6f9bd1', '#9aa6b5', '#d98a8a', L];
+    hbars('g10a', pm.map((g, i) => ({ l: g.nome, v: g.dfatia, c: cc[i] })), { w: 600, h: 190, lw: 130, fmt: v => pp(v), max: 5 });
+    hbars('g10b', pm.map((g, i) => ({ l: `${g.nome} (${f0(g.n)})`, v: g.saldo / 1e3, c: cc[i] })), { w: 600, h: 190, lw: 190, fmt: v => f0(v) });
+  });
+
+// 11. viradas
+const vp = R.viradasPorUF.slice(0, 10), vg = R.viradasAgg;
+slide('Viradas', `${S.viradas} municípios mudaram de líder (${f0(S.viradasFL)} de Flávio para Lula), ${pc((UF.mg.viradas + UF.sp.viradas + REG.Sul.viradas) / S.viradas * 100, 0)} em Minas Gerais, São Paulo e no Sul`,
+  'Municípios em que o mais votado entre Lula e Flávio mudou do 1º para o 2º turno (mais 10 localidades no exterior)',
+  `<div class="row"><div class="col" style="flex:none;width:460px"><div id="g11a"></div><div class="leg"><span><i style="background:#b71c1c"></i>Virou de Flávio para Lula</span><span><i style="background:#0d47a1"></i>Virou de Lula para Flávio</span></div></div>
+  <div class="col"><div class="nota"><b>Municípios que viraram, por estado</b></div><div id="g11b"></div>
+  <div class="box" style="margin-top:12px"><h4>Leitura</h4><ul>
+   <li>Concentram-se em <b>Minas</b> (${UF.mg.viradas}), <b>São Paulo</b> (${UF.sp.viradas}), <b>Paraná</b> (${UF.pr.viradas}), <b>Rio Grande do Sul</b> (${UF.rs.viradas}) e <b>Goiás</b> (${UF.go.viradas}): regiões metropolitanas e cidades médias do centro-sul.</li>
+   <li>São muitos municípios pequenos (${R.viradasPorFaixa[0].n} com até 10 mil eleitores) mas poucos grandes (${R.viradasPorFaixa[3].n} com mais de 200 mil têm ${pc(R.viradasPorFaixa[3].val2 / vg.val2 * 100, 0)} dos votos válidos das viradas).</li>
+   <li>As viradas somam ${pc(vg.val2 / val2S * 100, 1)} dos votos válidos e ${pc(sh(vg.saldo), 0)} do saldo: contam muito para a narrativa e pouco para o placar.</li></ul></div></div></div>`,
+  () => {
+    desenharMapa('g11a', r => r ? '#e3e7ec' : '#ccc', s => FEATS.forEach(f => { const r = MAPA.get(f.c); if (r && r[2] && Number.isFinite(f.ct[0])) s.append('circle').attr('cx', f.ct[0]).attr('cy', f.ct[1]).attr('r', 2.4).attr('fill', r[2] === 1 ? '#b71c1c' : '#0d47a1').attr('stroke', '#fff').attr('stroke-width', .5); }));
+    hbars('g11b', vp.map(v => ({ l: v.k.toUpperCase(), v: v.n, c: REGC[v.regiao] })), { w: 600, h: 250, lw: 40, fmt: v => f0(v) });
+  });
+
+// 12. viradas, exemplos
+const vt = R.viradasTop.slice(0, 12);
+slide('Viradas: exemplos', `As maiores viradas estão em grandes cidades e periferias metropolitanas: Rio, Osasco, Ananindeua, Macapá`,
+  'Margem de Lula − Flávio (p.p. dos válidos) no 1º turno (círculo vazado) e no 2º turno (círculo cheio), 12 maiores viradas por votos válidos',
+  `<div class="row"><div class="col" style="flex:none;width:690px"><div id="g12"></div></div>
+  <div class="col"><div class="box"><h4>Leitura</h4><ul>
+   <li>Quase todas viraram por poucos pontos: no 1º turno Flávio estava a menos de 8 p.p. e o deslocamento de 2,6 a 4,6 p.p. bastou.</li>
+   <li><b>Rio de Janeiro</b>: a maior virada em votos (${mi(vt[0].val2, 1)} de válidos): de ${pp(vt[0].m1)} para ${pp(vt[0].m2)}.</li>
+   <li><b>Osasco, Cotia, São Vicente</b> (SP) e <b>Ribeirão das Neves, Santa Luzia, Ibirité, Sabará</b> (MG): periferia metropolitana, com Δ fatia entre +3,6 e +4,6.</li>
+   <li><b>Ananindeua</b> (PA) e <b>Macapá</b> (AP): virada no Norte; em Macapá o comparecimento caiu ${f1(-vt[3].dPart)} p.p., ou seja, Lula virou com menos eleitores votando.</li></ul></div>
+   <div class="nota" style="margin-top:10px">Δ fatia e comparecimento por município na tabela do painel interativo.</div></div></div>`,
+  () => {
+    const w = 690, h = 420, pad = { l: 190, r: 20, t: 10, b: 36 }, s = mk('g12', w, h), x = d3.scaleLinear().domain([-12, 8]).range([pad.l, w - pad.r]), bh = (h - pad.t - pad.b) / vt.length;
+    x.ticks(10).forEach(t => { s.append('line').attr('x1', x(t)).attr('x2', x(t)).attr('y1', pad.t).attr('y2', h - pad.b).attr('stroke', t === 0 ? '#555' : '#eef1f4'); txt(s, x(t), h - pad.b + 14, (t > 0 ? '+' : t < 0 ? '−' : '') + Math.abs(t), { a: 'middle', fs: 11, c: '#7b8696' }); });
+    txt(s, x(-12), h - 8, '← Flávio na frente', { fs: 11.5, c: F, w: 600 }); txt(s, x(8), h - 8, 'Lula na frente →', { fs: 11.5, c: L, w: 600, a: 'end' });
+    vt.forEach((v, i) => {
+      const y = pad.t + i * bh + bh / 2;
+      txt(s, pad.l - 10, y, `${nome(v.nome)}/${v.uf.toUpperCase()}`, { a: 'end', fs: 12.5, w: i === 0 ? 700 : 400 });
+      s.append('line').attr('x1', x(v.m1)).attr('x2', x(v.m2)).attr('y1', y).attr('y2', y).attr('stroke', '#9aa6b5').attr('stroke-width', 2.2);
+      s.append('circle').attr('cx', x(v.m1)).attr('cy', y).attr('r', 5.5).attr('fill', '#fff').attr('stroke', F).attr('stroke-width', 2);
+      s.append('circle').attr('cx', x(v.m2)).attr('cy', y).attr('r', 5.5).attr('fill', L);
+    });
+  });
+
+// 13. abstenção
+const qs = R.quartisPart;
+slide('Abstenção e comparecimento', `A abstenção caiu de ${pc(B.abs1)} para ${pc(B.abs2)} e ${mi(B.dComp, 1)} de eleitores a mais votaram, mas isso explica só parte da virada`,
+  'Abstenção por região nos dois turnos (esq.) e deslocamento Δ fatia por quartil de variação do comparecimento (dir.)',
+  `<div class="row"><div class="col"><div class="nota"><b>Abstenção (% dos eleitores aptos)</b></div><div id="g13a"></div><div class="leg"><span><i style="background:#c5ccd6"></i>1º turno</span><span><i style="background:${VM}"></i>2º turno</span></div></div>
+  <div class="col"><div class="nota"><b>Δ fatia por quartil de variação do comparecimento (municípios)</b></div><div id="g13b"></div>
+  <div class="box" style="margin-top:12px"><h4>Leitura</h4><ul>
+   <li>Votaram ${mi(B.dComp, 2)} a mais; outros ${mi(B.dBn, 2)} deixaram de votar em branco/nulo. Juntos: ${mi(B.dComp + B.dBn, 2)}, ${pc((B.dComp + B.dBn) / totInc * 100, 0)} dos votos a mais dos finalistas (o resto vem dos outros candidatos).</li>
+   <li>Mas o Δ fatia é parecido entre os quartis (${pp(qs[0].dfatia)} a ${pp(qs[2].dfatia)}) e a correlação município a município é de só ${f1(R.correl.dPart_dsh, 2)}: mais comparecimento não é, sozinho, o motor da virada.</li>
+   <li>No <b>Norte</b> a abstenção <i>subiu</i> (${pc(REG.Norte.abs1)} para ${pc(REG.Norte.abs2)}) e Lula ainda assim empatou o placar: ganhou ${mil(REG.Norte.dL)} votos contra ${mil(REG.Norte.dF)} de Flávio.</li>
+   <li>Maiores altas de comparecimento (≥ 10 mil válidos): ${R.topPart.slice(0, 3).map(m => `${nome(m.nome)}/${m.uf.toUpperCase()} (${pp(m.dPart)})`).join(', ')}.</li></ul></div></div></div>`,
+  () => {
+    const g = [...R.regioes.map(r => ({ l: r.k === 'Centro-Oeste' ? 'C.-Oeste' : r.k, v: [r.abs1, r.abs2] })), { l: 'Brasil', v: [S.abs1, S.abs2] }];
+    cols('g13a', g, [{ c: '#c5ccd6' }, { c: VM }], { w: 560, h: 310, fmt: v => f1(v, 1), tick: t => t, max: 28, fs: 11 });
+    hbars('g13b', qs.map((q, i) => ({ l: `${i + 1}º: ${f1(q.min, 1)} a ${f1(q.max, 1)} p.p.`, v: q.dfatia, c: [CZ, V3, V2, VM][i] })), { w: 600, h: 150, lw: 175, fmt: v => pp(v), max: 4 });
+  });
+
+// 14. municípios destaque
+const rowM = m => `<tr><td>${nome(m.nome)}/${m.uf.toUpperCase()}</td><td>${f0(m.val2)}</td><td>${pp(m.m1)}</td><td>${pp(m.m2)}</td><td>${pp(m.dsh)}</td><td>${(m.saldo > 0 ? '+' : '') + f0(m.saldo)}</td></tr>`;
+const hd = '<thead><tr><th>Município</th><th>Válidos 2º t.</th><th>Margem 1º</th><th>Margem 2º</th><th>Δ fatia</th><th>Saldo (votos)</th></tr></thead>';
+slide('Municípios em destaque', 'Exemplos que ilustram cada explicação: tamanho, deslocamento, equilíbrio e contra-exemplos',
+  'Margem = Lula − Flávio (p.p. dos válidos); saldo = Δ Lula − Δ Flávio em votos. Deslocamentos: municípios com ≥ 10 mil válidos',
+  `<div class="row"><div class="col"><div class="nota"><b>Maior saldo líquido de votos</b></div><table class="t">${hd}<tbody>${R.topSaldo.slice(0, 6).map(rowM).join('')}</tbody></table>
+   <div class="nota" style="margin:12px 0 4px"><b>Maior deslocamento pró-Lula (Δ fatia)</b></div><table class="t">${hd}<tbody>${R.topFatiaL.slice(0, 5).map(rowM).join('')}</tbody></table></div>
+  <div class="col"><div class="nota"><b>Mais equilibrados no 2º turno (≥ 20 mil válidos)</b></div><table class="t">${hd}<tbody>${R.apertadas.slice(0, 5).map(rowM).join('')}</tbody></table>
+   <div class="nota" style="margin:12px 0 4px"><b>Contra-corrente: Δ fatia negativo (pró-Flávio), ≥ 10 mil válidos</b></div><table class="t">${hd}<tbody>${R.topFatiaF.slice(0, 5).map(rowM).join('')}</tbody></table>
+   <div class="box" style="margin-top:12px"><ul><li>Os ${R.topFatiaF.slice(0, 5).every(m => m.uf === 'ba') ? 'cinco contra-exemplos são baianos' : 'contra-exemplos'} onde Lula já liderava por ${f0(Math.min(...R.topFatiaF.slice(0, 5).map(m => m.m1)))} a ${f0(Math.max(...R.topFatiaF.slice(0, 5).map(m => m.m1)))} p.p. no 1º turno: a variação contra ele foi de ~1 a 2 p.p.</li><li>Em Campos dos Goytacazes (RJ) e São João da Barra (RJ), Flávio liderava por mais de 25 p.p. e a fatia de Lula subiu quase 6 p.p.</li></ul></div></div></div>`);
+
+// 15. síntese
+slide('Síntese', 'Cinco razões que os dados sustentam para a virada',
+  'Cada razão é um fato observável nos resultados; as causas políticas por trás dos votos estão fora do alcance destes dados',
+  `<div class="kpis" style="grid-template-columns:1fr" id="sintese">
+  <div class="kpi" style="border-color:${V2}"><b style="font-size:19px">1. Lula absorveu a maior parte dos votos novos</b><span>${pc(shL, 0)} do acréscimo dos finalistas (${mi(totInc, 1)}), contra ${pc(base1, 0)} que a fatia do 1º turno sugeriria. Esse acréscimo reúne ${mi(B.O1, 1)} de eleitores de outros candidatos, ${mi(B.dComp, 1)} de comparecimento a mais e ${mi(B.dBn, 1)} de brancos/nulos que passaram a votar.</span></div>
+  <div class="kpi" style="border-color:${V2}"><b style="font-size:19px">2. O deslocamento foi geral e mais forte onde Flávio era forte</b><span>${pc(S.pmunPro, 0)} dos municípios (${pc(S.pvotPro, 0)} dos votos) se deslocaram ≥ 3 p.p. pró-Lula; ${S.nCon} pró-Flávio. Δ fatia maior no Sudeste (${pp(REG.Sudeste.dfatia)}), Centro-Oeste (${pp(REG['Centro-Oeste'].dfatia)}) e Sul (${pp(REG.Sul.dfatia)}).</span></div>
+  <div class="kpi" style="border-color:${V2}"><b style="font-size:19px">3. As grandes cidades e as capitais concentraram o saldo em votos</b><span>${R.faixas[3].n} municípios com mais de 200 mil eleitores: ${pc(sh(fx[3].saldo), 0)} do saldo. São Paulo (+${mil(R.capitais[0].saldo)}), Rio (+${mil(R.capitais[1].saldo)}) e Salvador (+${mil(R.capitais.find(c => c.nome === 'SALVADOR').saldo)}) lideram.</span></div>
+  <div class="kpi" style="border-color:${V2}"><b style="font-size:19px">4. Minas Gerais e as periferias do Sudeste mudaram o mapa</b><span>${UF.mg.viradas} das ${S.viradas} viradas são mineiras; MG foi o único estado a trocar de lado (${pp(mg.m1)} para ${pp(mg.m2)}), e o Sudeste tem ${REG.Sudeste.viradas} viradas e ${pc(sh(REG.Sudeste.saldo), 0)} do saldo.</span></div>
+  <div class="kpi" style="border-color:${V2}"><b style="font-size:19px">5. No Nordeste, base alta e mais gente votando; no Norte, empate sem mobilização</b><span>Nordeste: Lula +${mi(REG.Nordeste.dL)} contra +${mi(REG.Nordeste.dF)} de Flávio (${pc(sh(REG.Nordeste.saldo), 0)} do saldo). Norte: margem de ${pp(REG.Norte.m1)} a ${pp(REG.Norte.m2)}, com abstenção maior.</span></div>
+  </div>`);
+
+// 16. limites
+slide('Limites e próximos passos', 'O que estes dados não mostram, e o que fazer para ir além',
+  'Cuidados de leitura e análises que agregam',
+  `<div class="row"><div class="col"><div class="box"><h4>Cuidados de leitura</h4><ul>
+   <li><b>Voto secreto</b>: os números são saldos entre turnos por município. Não dá para dizer quem migrou de quem.</li>
+   <li><b>Falácia ecológica</b>: características do município (capital, tamanho, região) não são características do eleitor.</li>
+   <li><b>% de municípios ≠ % de eleitores</b>: grandes cidades pesam mais nos votos; por isso o painel mostra os dois percentuais.</li>
+   <li><b>Efeito mecânico do swing</b>: por isso a medida principal é o Δ fatia, que ignora os outros candidatos do 1º turno.</li>
+   <li><b>Causas</b>: os dados mostram onde e quanto, não por quê (campanha, rejeição, fatos do período).</li></ul></div></div>
+  <div class="col"><div class="box"><h4>Para ir além</h4><ul>
+   <li><b>Perfil do eleitorado por município</b> (TSE: idade, escolaridade, gênero) e <b>renda</b> (Censo 2022, IBGE) para testar se esses recortes explicam o deslocamento.</li>
+   <li><b>Resultado do 2º turno por seção</b> (quando o TSE publicar): vira a análise por bairro e local de votação dentro das grandes cidades.</li>
+   <li><b>Pesquisas de opinião</b> com identificação de voto, que respondem sobre perfis individuais, o que os dados do TSE não fazem.</li></ul></div>
+   <div class="nota" style="margin-top:12px">${FONTE}</div></div></div>`);
+
+// 17. apêndice capitais
+const mc = Math.ceil(cap.length / 2);
+const sg = n => (n > 0 ? '+' : n < 0 ? '−' : '') + f1(Math.abs(n));
+const capRow = c => `<tr><td>${nome(c.nome)}/${c.uf.toUpperCase()}</td><td>${f0(c.val2)}</td><td>${sg(c.m1)}</td><td>${sg(c.m2)}</td><td>${sg(c.dsh)}</td><td>${sg(c.dPart)}</td><td>${(c.saldo > 0 ? '+' : '') + f0(c.saldo)}${c.viradas ? ' ⇄' : ''}</td></tr>`;
+const hdc = '<thead><tr><th>Capital</th><th>Válidos 2º t.</th><th>Margem 1º</th><th>Margem 2º</th><th>Δ fatia</th><th>Δ comp.</th><th>Saldo</th></tr></thead>';
+slide('Apêndice', 'As 27 capitais: margem, deslocamento, comparecimento e saldo de votos', 'Margens, Δ fatia e Δ comp. em p.p. Ordenadas por votos válidos do 2º turno; ⇄ = mudou de líder; Δ comp. = variação do comparecimento em p.p. dos aptos',
+  `<div class="row"><div class="col"><table class="t">${hdc}<tbody>${cap.slice(0, mc).map(capRow).join('')}</tbody></table></div><div class="col"><table class="t">${hdc}<tbody>${cap.slice(mc).map(capRow).join('')}</tbody></table></div></div>`);
+
+// 18. apêndice regiões e grupos
+const grow = (l, g) => `<tr><td>${l}</td><td>${f0(g.n)}</td><td>${pp(g.m1)}</td><td>${pp(g.m2)}</td><td>${pp(g.dfatia)}</td><td>${pc(g.pmunPro, 0)}</td><td>${pc(g.pvotPro, 0)}</td><td>${pc(g.abs1)} → ${pc(g.abs2)}</td><td>${f0(g.viradas)}</td><td>${(g.saldo > 0 ? '+' : '') + f0(g.saldo)}</td></tr>`;
+const hdg = '<thead><tr><th>Grupo</th><th>Municípios</th><th>Margem 1º</th><th>Margem 2º</th><th>Δ fatia</th><th>% mun. ≥ +3</th><th>% votos</th><th>Abstenção</th><th>Viradas</th><th>Saldo</th></tr></thead>';
+slide('Apêndice', 'Resumo por região, capitais × interior e faixa de tamanho', 'Δ fatia em p.p.; % mun. ≥ +3 = % dos municípios com deslocamento pró-Lula de pelo menos 3 p.p.; % votos = parcela dos votos válidos do 2º turno que eles representam',
+  `<table class="t">${hdg}<tbody>${R.regioes.map(r => grow(r.k, r)).join('')}${grow('<b>Brasil (sem exterior)</b>', S)}${grow('Capitais', R.capitaisAgg)}${grow('Demais municípios', R.interiorAgg)}${fx.map(f => grow(f.nome + ' eleitores', f)).join('')}</tbody></table>`);
+
+// encerramento
+slides.push({ fim: true, html: () => `<section class="slide fim"><img class="logo" src="${LOGO}" alt="Portofino"><h2>Obrigado</h2><div class="txt">Painel interativo com os mesmos dados (mapa por município, camadas, setas de deslocamento, filtros por região, estado, capitais e tamanho): <b>painel-eleicoes-2026.html</b>.<br><br>${FONTE}<br>Metodologia, definições e conferência com os totais oficiais: LEIAME do painel. Soma dos municípios confere com os totais do portal do TSE: ${R.meta.conferenciaOk ? 'sim' : 'NÃO'}.</div></section>` });
+
+// ---------- montagem e navegação ----------
+const palco = document.getElementById('palco'); let n = 0;
+slides.forEach((sl, i) => {
+  if (sl.html) { palco.insertAdjacentHTML('beforeend', sl.html()); return; }
+  n++;
+  palco.insertAdjacentHTML('beforeend', `<section class="slide"><div class="topo"><div class="kick">${sl.kick}</div><h2>${sl.titulo}</h2><p>${sl.sub}</p></div><div class="sel"><img src="${LOGO}" alt="Portofino"></div><div class="corpo">${sl.corpo.split("p.p..").join("p.p.")}</div><div class="rod"><span>${FONTE}</span><b>${i + 1}</b></div></section>`);
+});
+const els = [...palco.children];
+slides.forEach((sl, i) => { if (sl.draw) { try { sl.draw(els[i]); } catch (e) { console.error('slide ' + (i + 1), e); } } });
+let at = Math.max(0, Math.min(els.length - 1, (parseInt(location.hash.slice(1)) || 1) - 1));
+const mostrar = i => { at = Math.max(0, Math.min(els.length - 1, i)); els.forEach((e, k) => e.classList.toggle('on', k === at)); document.getElementById('contador').textContent = `${at + 1} / ${els.length}`; history.replaceState(null, '', '#' + (at + 1)); };
+const ajustar = () => { const s = Math.min(innerWidth / 1280, innerHeight / 720); palco.style.transform = `translate(${(innerWidth - 1280 * s) / 2}px,${(innerHeight - 720 * s) / 2}px) scale(${s})`; };
+addEventListener('resize', ajustar); ajustar(); mostrar(at);
+addEventListener('keydown', e => { if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); mostrar(at + 1); } else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) mostrar(at - 1); else if (e.key === 'Home') mostrar(0); else if (e.key === 'End') mostrar(els.length - 1); else if (e.key === 'f' || e.key === 'F') document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); });
+document.getElementById('ant').onclick = () => mostrar(at - 1); document.getElementById('prox').onclick = () => mostrar(at + 1);
+document.getElementById('tela').onclick = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+})();
+</script>
+</body>
+</html>
