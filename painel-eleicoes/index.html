@@ -47,7 +47,7 @@
   .controls .minseta input { width:90px; accent-color:var(--acc); }
   .controls .minseta output { min-width:24px; text-align:right; }
   #ajuda { position:fixed; pointer-events:none; display:none; z-index:10; max-width:330px; background:var(--card); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:12px; line-height:1.45; white-space:pre-line; box-shadow:0 4px 14px rgba(0,0,0,.2); text-align:left; font-weight:400; }
-  th[data-info]::after, td[data-info]::after, span[data-info]::after { content:' ⓘ'; color:var(--info); font-size:1.15em; font-weight:700; }
+  th[data-info]::after, td[data-info]::after, span[data-info]::after, h3[data-info]::after { content:' ⓘ'; color:var(--info); font-size:1.15em; font-weight:700; }
   .kpi[data-info] { position:relative; padding-right:24px; }
   .kpi[data-info]::after { content:'ⓘ'; position:absolute; top:5px; right:7px; color:var(--info); font-size:15px; font-weight:700; }
   .legend .i { cursor:help; color:var(--info); font-size:15px; font-weight:700; }
@@ -120,15 +120,17 @@
     m2: 'Margem do 2º turno = % de Lula − % de Flávio, sobre os votos válidos do município no 2º turno.\nEx.: Lula 60% e Flávio 40% → +20 p.p.\nPositivo = Lula na frente; negativo = Flávio na frente.',
     m1: 'Margem do 1º turno = % de Lula − % de Flávio, sobre todos os votos válidos do 1º turno. Essa base inclui os outros candidatos, por isso Lula e Flávio somam menos de 100%.',
     m12: 'Margem = % de Lula − % de Flávio sobre os votos válidos de cada turno (p.p.). Positivo = Lula na frente. A seta mostra o 1º → 2º turno.',
-    swing: 'Swing = margem do 2º turno − margem do 1º turno (p.p.).\nPositivo = a margem se deslocou a favor de Lula, mesmo que Flávio ainda esteja na frente.\nInclui um efeito mecânico: os votos dos outros candidatos do 1º turno saem da base e ampliam a vantagem que já existia.',
-    fatia: 'Δ fatia = Lula ÷ (Lula + Flávio) no 2º turno − o mesmo no 1º turno (p.p.).\nIgnora os outros candidatos nos dois turnos, por isso remove o efeito mecânico do swing. Dobrando o valor, ele fica na mesma escala do swing.',
+    swing: 'Swing = margem do 2º turno − margem do 1º turno (p.p.). É a medida convencional e aparece como apoio nas tabelas e quadros; a medida principal do painel é o Δ fatia.\nPositivo = a margem se deslocou a favor de Lula, mesmo que Flávio ainda esteja na frente.\nInclui um efeito mecânico: os votos dos outros candidatos do 1º turno saem da base e ampliam a vantagem que já existia.',
+    fatia: 'Δ fatia (medida principal do deslocamento) = Lula ÷ (Lula + Flávio) no 2º turno − o mesmo no 1º turno (p.p.).\nPositivo = o resultado se deslocou a favor de Lula; negativo = a favor de Flávio.\nIgnora os outros candidatos nos dois turnos, por isso remove o efeito mecânico do swing. Dobrando o valor, ele fica na mesma escala do swing.',
+    faixas: 'Divide os municípios do recorte em três grupos pelo Δ fatia e pelo mínimo escolhido no controle "mín.":\npró-Lula (Δ fatia ≥ mínimo), pró-Flávio (Δ fatia ≤ −mínimo) e estável (entre os dois).\nA 1ª barra conta municípios; a 2ª pesa pelos votos válidos do 2º turno. Municípios grandes pesam mais na 2ª barra.',
+    pmun: '% mun. pró-Lula = % dos municípios do recorte em que o Δ fatia favorece Lula em pelo menos o mínimo escolhido no controle "mín." das setas.',
+    pvot: '% votos = parcela dos votos válidos do 2º turno que esses municípios representam. É diferente da % de municípios, porque os grandes pesam mais.',
     part: 'Δ comparecimento = (comparecimento do 2º turno − comparecimento do 1º turno) ÷ eleitores aptos, em p.p.',
     virada: 'Virada = município em que o mais votado entre Lula e Flávio mudou do 1º para o 2º turno. Compara só os dois; empate não conta.',
     dLula: 'Δ Lula = votos de Lula no 2º turno − votos no 1º turno. É ganho líquido, não migração: o voto é secreto.',
     dFlavio: 'Δ Flávio = votos de Flávio no 2º turno − votos no 1º turno. É ganho líquido, não migração: o voto é secreto.',
     dPart: 'Δ comp. = variação do comparecimento entre os turnos, em p.p. dos eleitores aptos.',
-    pos: 'Mun. c/ swing + = % dos municípios (com votos nos dois turnos) em que o swing é positivo, ou seja, a margem se deslocou a favor de Lula.',
-    munpos: 'Conta só municípios com votos nos dois turnos. Swing positivo = margem do 2º turno maior que a do 1º (a favor de Lula). "Sem o efeito dos outros candidatos" usa o Δ fatia: Lula ÷ (Lula + Flávio).',
+    munpos: 'Conta só municípios com votos nos dois turnos. Δ fatia positivo = Lula ÷ (Lula + Flávio) maior no 2º turno que no 1º. A medida convencional (swing da margem) inclui o efeito mecânico dos outros candidatos do 1º turno.',
     validos: 'Válidos 2º t. = votos válidos do 2º turno: votos em Lula ou em Flávio (sem brancos, nulos e abstenções). Indica o tamanho do município.',
     abst: 'Abstenção = eleitores aptos que não compareceram ÷ eleitores aptos. A seta mostra o 1º → 2º turno.',
     outros: 'Votos válidos dos outros candidatos no 1º turno. Eles não disputaram o 2º turno; esses eleitores só aparecem no 2º se votaram em Lula ou Flávio, em branco/nulo, ou se abstiveram.',
@@ -148,8 +150,16 @@
     const f = g => { const p = ok.filter(g); return { n: p.length, pn: ok.length ? p.length / ok.length * 100 : 0, pv: tv ? sum(p, 'val2') / tv * 100 : 0 }; };
     return { total: ok.length, marg: f(m => m.swing > 0), fatia: f(m => m.dsh > 0) };
   }
-  P.ufs.forEach(g => { g.pos = estatSwing(M.filter(m => m.uf === g.k)).marg.pn; });
-  P.regioes.forEach(g => { g.pos = estatSwing(M.filter(m => m.regiao === g.k)).marg.pn; });
+  // Faixas de deslocamento pelo Δ fatia e pelo mínimo das setas: quantos municípios (e que parcela dos votos válidos) são pró-Lula, pró-Flávio ou estáveis
+  function estatMin(ms, min) {
+    let n = 0, tv = 0, nl = 0, nf = 0, vl = 0, vf = 0;
+    for (const m of ms) {
+      if (!m.ok) continue; n++; tv += m.val2;
+      if (m.dsh > 0 && m.dsh >= min) { nl++; vl += m.val2; } else if (m.dsh < 0 && m.dsh <= -min) { nf++; vf += m.val2; }
+    }
+    const p = (a, b) => (b ? a / b * 100 : 0);
+    return { n, tv, nl, nf, ne: n - nl - nf, vl, vf, ve: tv - vl - vf, pl: p(nl, n), pf: p(nf, n), pe: p(n - nl - nf, n), vlp: p(vl, tv), vfp: p(vf, tv), vep: p(tv - vl - vf, tv) };
+  }
 
   document.getElementById('fonte').textContent = `Fonte: TSE (portal de resultados). 1º turno ${P.meta.atualizado.t1} · 2º turno ${P.meta.atualizado.t2} (horário local, dado do portal). Conferir sempre no TSE.`;
   document.getElementById('rodape').textContent = `Dados gerados em ${new Date(P.meta.geradoEm).toLocaleString('pt-BR')}. Soma dos municípios confere com os totais do portal do TSE: ${P.meta.conferenciaOk ? 'sim' : 'NÃO'}. O exterior (186 localidades) entra nos totais e nas tabelas, mas não no mapa. Boa Esperança do Norte/MT não tem polígono na malha do IBGE usada.`;
@@ -167,7 +177,7 @@
     limAuto = {};
     const ms = M.filter(m => m.ok && m.uf !== 'zz' && noEscopo(m)); if (!ms.length) return; // o exterior não aparece no mapa
     const pct = (arr, p) => arr[Math.min(arr.length - 1, Math.max(0, Math.floor(arr.length * p)))];
-    for (const k of ['m2', 'm1', 'swing', 'fatia']) {
+    for (const k of ['m2', 'm1', 'fatia']) {
       const a = ms.map(m => Math.abs(valorModo[k](m))).sort((x, y) => x - y), passo = k === 'fatia' ? 1 : 5;
       const l = Math.max(passo, Math.ceil(pct(a, .98) / passo) * passo); limAuto[k] = [-l, l];
     }
@@ -185,8 +195,7 @@
   const modos = {
     m2: { nome: 'Margem 2º turno', cor: m => rdbu(m.m2, lims('m2')[1]), get leg() { return [...lims('m2'), 'Flávio', 'Lula', 'p.p. de margem (Lula − Flávio, % dos válidos)']; }, tip: m => `Margem: ${lado(m.m2)} ${pp(Math.abs(m.m2))}` },
     m1: { nome: 'Margem 1º turno', cor: m => rdbu(m.m1, lims('m1')[1]), get leg() { return [...lims('m1'), 'Flávio', 'Lula', 'p.p. de margem (Lula − Flávio, % dos válidos)']; }, tip: m => `Margem 1º t.: ${lado(m.m1)} ${pp(Math.abs(m.m1))}` },
-    swing: { nome: 'Swing (2º − 1º)', cor: m => rdbu(m.swing, lims('swing')[1]), get leg() { return [...lims('swing'), 'Flávio', 'Lula', 'variação da margem entre turnos, p.p. (positivo = a favor de Lula)']; }, tip: m => `Swing: ${pp(m.swing)}` },
-    fatia: { nome: 'Δ fatia de Lula (sem outros)', cor: m => rdbu(m.dsh, lims('fatia')[1]), get leg() { return [...lims('fatia'), 'Flávio', 'Lula', 'Δ da fatia de Lula entre os finalistas, p.p. (Lula ÷ (Lula + Flávio), 1º → 2º turno)']; }, tip: m => `Δ fatia de Lula: ${pp(m.dsh)}` },
+    fatia: { nome: 'Deslocamento (Δ fatia)', cor: m => rdbu(m.dsh, lims('fatia')[1]), get leg() { return [...lims('fatia'), 'Flávio', 'Lula', 'Δ da fatia de Lula entre os finalistas, p.p. (Lula ÷ (Lula + Flávio), 1º → 2º turno)']; }, tip: m => `Δ fatia de Lula: ${pp(m.dsh)}` },
     virada: { nome: 'Viradas', cor: m => m.virada === 'F>L' ? '#b71c1c' : m.virada === 'L>F' ? '#0d47a1' : (m.v2 === 'L' ? '#f3d2d2' : '#d0e0f3'), leg: null, tip: m => m.virada === 'F>L' ? 'VIROU: Flávio → Lula' : m.virada === 'L>F' ? 'VIROU: Lula → Flávio' : 'Manteve o líder' },
     part: { nome: 'Comparecimento Δ', cor: m => { const [lo, hi] = lims('part'); return d3.interpolateGreens(clamp((dPart(m) - lo) / (hi - lo))); }, get leg() { const [lo, hi] = lims('part'); return [lo, hi, 'menos', 'mais', 'variação do comparecimento, p.p. do eleitorado apto']; }, tip: m => `Comparecimento: ${pp(dPart(m))}` },
   };
@@ -239,10 +248,10 @@
     if (!c) L.innerHTML += `<span class="i" ${ai('virada')}>ⓘ</span>`;
     if (setas !== 'nenhuma') {
       const n = contarSetas(), fmtN = x => x.toLocaleString('pt-BR');
-      L.innerHTML = `<span><span style="display:inline-block;width:16px;height:10px;background:#eef0f3;border:1px solid #b9c0ca;vertical-align:middle"></span> Mapa em cinza claro: a informação está nas setas. Clique em uma camada (Margem, Swing…) ou em "Nenhuma" para voltar às cores.</span><span style="flex-basis:100%">${setas !== 'flavio' ? `<b style="color:#c62828">←</b> pró-Lula: ${fmtN(n.l)} municípios` : ''}${setas === 'ambas' ? ' · ' : ''}${setas !== 'lula' ? `<b style="color:#1565c0">→</b> pró-Flávio: ${fmtN(n.f)} municípios` : ''} (Δ fatia de pelo menos ${minSeta.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} p.p.; tamanho proporcional ao valor) <span class="i" ${ai('setas')}>ⓘ</span></span>`;
+      L.innerHTML = `<span><span style="display:inline-block;width:16px;height:10px;background:#eef0f3;border:1px solid #b9c0ca;vertical-align:middle"></span> Mapa em cinza claro: a informação está nas setas. Clique em uma camada (Margem, Deslocamento…) ou em "Nenhuma" para voltar às cores.</span><span style="flex-basis:100%">${setas !== 'flavio' ? `<b style="color:#c62828">←</b> pró-Lula: ${fmtN(n.l)} municípios (${pc(n.pl, 1)} dos municípios · ${pc(n.vlp, 1)} dos votos)` : ''}${setas === 'ambas' ? '<br>' : ''}${setas !== 'lula' ? `<b style="color:#1565c0">→</b> pró-Flávio: ${fmtN(n.f)} municípios (${pc(n.pf, 1)} dos municípios · ${pc(n.vfp, 1)} dos votos)` : ''} (Δ fatia de pelo menos ${minSeta.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} p.p.; tamanho proporcional ao valor) <span class="i" ${ai('setas')}>ⓘ</span></span>`;
     }
     if (camadaLocais && LC) {
-      const precisaT2 = ['m2', 'swing', 'fatia', 'virada', 'part'].includes(modo) && !temT2;
+      const precisaT2 = ['m2', 'fatia', 'virada', 'part'].includes(modo) && !temT2;
       L.innerHTML += `<span style="flex-basis:100%">${precisaT2 ? '<b>Locais de votação:</b> esta camada precisa do resultado do 2º turno por seção, que o TSE ainda não publicou (pontos em cinza).' : `Pontos = locais de votação (${LC.linhas.length.toLocaleString('pt-BR')}). Resultado por seção disponível: ${LC.turnos.map(t => t + 'º turno').join(' e ')}.`}</span>`;
     }
   }
@@ -271,7 +280,7 @@
   });
   const ms = document.createElement('label'); ms.className = 'minseta'; ms.title = 'Deslocamento mínimo (Δ fatia, em p.p.) para a seta aparecer';
   ms.innerHTML = 'mín. <input type="range" id="minSeta" min="0" max="5" step="0.5" value="3"> <output>3,0</output> p.p.';
-  ms.querySelector('input').oninput = e => { minSeta = +e.target.value; ms.querySelector('output').textContent = minSeta.toLocaleString('pt-BR', { minimumFractionDigits: 1 }); pintar(); };
+  ms.querySelector('input').oninput = e => { minSeta = +e.target.value; ms.querySelector('output').textContent = minSeta.toLocaleString('pt-BR', { minimumFractionDigits: 1 }); pintar(); render(); };
   gs.appendChild(ms); mo.appendChild(gs);
   const rz = document.createElement('button'); rz.textContent = 'Ver Brasil'; rz.onclick = () => { ufSel = null; regSel = null; aplicarEscopo(); }; mo.appendChild(rz);
   const UFNOME = { ac: 'Acre', al: 'Alagoas', ap: 'Amapá', am: 'Amazonas', ba: 'Bahia', ce: 'Ceará', df: 'Distrito Federal', es: 'Espírito Santo', go: 'Goiás', ma: 'Maranhão', mt: 'Mato Grosso', ms: 'Mato Grosso do Sul', mg: 'Minas Gerais', pa: 'Pará', pb: 'Paraíba', pr: 'Paraná', pe: 'Pernambuco', pi: 'Piauí', rj: 'Rio de Janeiro', rn: 'Rio Grande do Norte', rs: 'Rio Grande do Sul', ro: 'Rondônia', rr: 'Roraima', sc: 'Santa Catarina', sp: 'São Paulo', se: 'Sergipe', to: 'Tocantins', zz: 'Exterior' };
@@ -319,7 +328,12 @@
   { const dpr = window.devicePixelRatio || 1; cvS.width = W * dpr; cvS.height = H * dpr; ctxS.setTransform(dpr, 0, 0, dpr, 0, 0); }
   const centros = feats.map(f => { const m = porIbge.get(f.properties.c); if (!m || !m.ok) return null; const c = path.centroid(f); return Number.isFinite(c[0]) && Number.isFinite(c[1]) ? { x: c[0], y: c[1], m } : null; }).filter(Boolean);
   const temSeta = m => (m.dsh >= minSeta && m.dsh > 0) ? 'l' : (m.dsh <= -minSeta && m.dsh < 0) ? 'f' : '';
-  function contarSetas() { let l = 0, f = 0; for (const c of centros) { if (!noEscopo(c.m)) continue; const s = temSeta(c.m); if (s === 'l') l++; else if (s === 'f') f++; } return { l, f }; }
+  function contarSetas() {
+    let n = 0, tv = 0, l = 0, f = 0, vl = 0, vf = 0;
+    for (const c of centros) { if (!noEscopo(c.m)) continue; n++; tv += c.m.val2; const s = temSeta(c.m); if (s === 'l') { l++; vl += c.m.val2; } else if (s === 'f') { f++; vf += c.m.val2; } }
+    const p = (a, b) => (b ? a / b * 100 : 0);
+    return { l, f, n, pl: p(l, n), pf: p(f, n), vlp: p(vl, tv), vfp: p(vf, tv) };
+  }
   function desenharSetas() {
     ctxS.clearRect(0, 0, W, H); if (setas === 'nenhuma') return;
     const t = d3.zoomTransform(svg.node()), k = t.k, fator = Math.min(1.8, 0.7 + 0.12 * k);
@@ -417,7 +431,7 @@
 
   // ---------- Painel lateral ----------
   const abas = { brasil: 'Brasil', estado: 'Região / Estado', regioes: 'Regiões e UFs', ranking: 'Rankings', mun: 'Município', ...(LC ? { bairros: 'Bairros', local: 'Local' } : {}) };
-  let aba = 'brasil', rank = 'viradas', ordUF = 'swing', ordDir = -1, busca = '';
+  let aba = 'brasil', rank = 'viradas', ordUF = 'dfatia', ordDir = -1, busca = '';
   const ab = document.getElementById('abas'), pn = document.getElementById('painel');
   Object.entries(abas).forEach(([k, v]) => { const b = document.createElement('button'); b.textContent = v; b.dataset.k = k; b.onclick = () => { aba = k; render(); }; ab.appendChild(b); });
 
@@ -443,20 +457,31 @@
   }
   function kpiSwing(ms) {
     const e = estatSwing(ms); if (!e.total) return '';
-    return `<div class="kpi" style="grid-column:1/-1" ${ai('munpos')}><b>${pc(e.marg.pn, 0)} dos municípios <small>(${fmt(e.marg.n)} de ${fmt(e.total)})</small></b><span>deslocaram a margem a favor de Lula (swing positivo) e concentram ${pc(e.marg.pv, 1)} dos votos válidos. Sem o efeito dos outros candidatos (Δ fatia de Lula): ${fmt(e.fatia.n)} municípios (${pc(e.fatia.pn, 0)}), ${pc(e.fatia.pv, 1)} dos votos válidos. Só municípios com votos nos dois turnos.</span></div>`;
+    return `<div class="kpi" style="grid-column:1/-1" ${ai('munpos')}><b>${pc(e.fatia.pn, 0)} dos municípios <small>(${fmt(e.fatia.n)} de ${fmt(e.total)})</small></b><span>deslocaram o resultado a favor de Lula (Δ fatia positivo) e concentram ${pc(e.fatia.pv, 1)} dos votos válidos. Pela medida convencional (swing da margem): ${fmt(e.marg.n)} municípios (${pc(e.marg.pn, 0)}), ${pc(e.marg.pv, 1)} dos votos válidos. Só municípios com votos nos dois turnos.</span></div>`;
   }
-  const tot = (arr) => { const o = {}; ['aptos','comp1','comp2','val1','val2','bn1','bn2','L1','F1','O1','L2','F2'].forEach(k => o[k] = sum(arr, k)); o.m1 = (o.L1 - o.F1) / o.val1 * 100; o.m2 = (o.L2 - o.F2) / o.val2 * 100; o.swing = o.m2 - o.m1; return o; };
+  // Barras de faixas (pró-Lula / estável / pró-Flávio) em % dos municípios e em % dos votos válidos, pelo mínimo das setas
+  function blocoFaixas(ms) {
+    const e = estatMin(ms, minSeta); if (!e.n) return '';
+    const barra = (l, s, f) => `<div class="stack"><div style="width:${l}%;background:var(--lula)"></div><div style="width:${s}%;background:#c5cbd3"></div><div style="width:${f}%;background:var(--flavio)"></div></div>`;
+    const txt = (l, s, f) => `<span class="L">← pró-Lula ${pc(l, 1)}</span> · estável ${pc(s, 1)} · <span class="F">pró-Flávio ${pc(f, 1)} →</span>`;
+    return `<h3 ${ai('faixas')}>Deslocamento do resultado <small>(Δ fatia de pelo menos ${minSeta.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} p.p.)</small></h3>
+    <div class="note" style="margin-top:0">Municípios (${fmt(e.nl)} pró-Lula, ${fmt(e.ne)} estáveis, ${fmt(e.nf)} pró-Flávio, de ${fmt(e.n)})</div>${barra(e.pl, e.pe, e.pf)}<div class="note" style="margin-top:2px">${txt(e.pl, e.pe, e.pf)}</div>
+    <div class="note">Votos válidos do 2º turno que esses municípios representam</div>${barra(e.vlp, e.vep, e.vfp)}<div class="note" style="margin-top:2px">${txt(e.vlp, e.vep, e.vfp)}</div>
+    <div class="note">O mínimo é o mesmo do controle "mín." das setas.</div>`;
+  }
+  const tot = (arr) => { const o = {}; ['aptos','comp1','comp2','val1','val2','bn1','bn2','L1','F1','O1','L2','F2'].forEach(k => o[k] = sum(arr, k)); o.m1 = (o.L1 - o.F1) / o.val1 * 100; o.m2 = (o.L2 - o.F2) / o.val2 * 100; o.swing = o.m2 - o.m1; o.dfatia = (o.L2 / (o.L2 + o.F2) - o.L1 / (o.L1 + o.F1)) * 100; return o; };
 
   function viewBrasil() {
     const t = tot(M), v = M.filter(m => m.virada);
     return `<div class="kpis">
       <div class="kpi"><b class="L">${pc(t.L2 / t.val2 * 100, 2)}</b><span>Lula 2º t. (${mi(t.L2)})</span></div>
       <div class="kpi"><b class="F">${pc(t.F2 / t.val2 * 100, 2)}</b><span>Flávio 2º t. (${mi(t.F2)})</span></div>
-      <div class="kpi" ${ai('swing')}><b>${pp(t.swing, 2)}</b><span>swing da margem (Lula)</span></div>
+      <div class="kpi" ${ai('fatia')}><b>${pp(t.dfatia, 2)}</b><span>Δ fatia de Lula (swing da margem: ${pp(t.swing, 2)})</span></div>
       <div class="kpi" ${ai('virada')}><b>${v.length}</b><span>municípios viraram (${v.filter(x => x.virada === 'F>L').length} p/ Lula, ${v.filter(x => x.virada === 'L>F').length} p/ Flávio)</span></div>
       <div class="kpi" ${ai('abst')}><b>${pc((1 - t.comp1 / t.aptos) * 100,2)} → ${pc((1 - t.comp2 / t.aptos) * 100, 2)}</b><span>abstenção</span></div>
       ${kpiSwing(M)}
     </div>
+    ${blocoFaixas(M.filter(m => m.uf !== 'zz'))}
     <div class="stack"><div style="width:${t.L1 / t.val1 * 100}%;background:var(--lula)"></div><div style="width:${t.O1 / t.val1 * 100}%;background:#9aa6b5"></div><div style="width:${t.F1 / t.val1 * 100}%;background:var(--flavio)"></div></div>
     <div class="note">1º turno: Lula ${pc(t.L1 / t.val1 * 100, 2)} · outros ${pc(t.O1 / t.val1 * 100, 2)} · Flávio ${pc(t.F1 / t.val1 * 100, 2)}</div>
     <div class="stack"><div style="width:${t.L2 / t.val2 * 100}%;background:var(--lula)"></div><div style="width:${t.F2 / t.val2 * 100}%;background:var(--flavio)"></div></div>
@@ -465,27 +490,30 @@
   }
 
   function tabelaGrupo(rows, titulo, clicavel) {
-    const cols = [['k', titulo], ['swing', 'Swing', 'swing'], ['pos', 'Mun. c/ swing +', 'pos'], ['m2', 'Margem 2º', 'm2'], ['dL', 'Δ Lula', 'dLula'], ['dF', 'Δ Flávio', 'dFlavio'], ['dPart', 'Δ comp. pp', 'dPart'], ['viradas', 'Viradas', 'virada']];
-    const r = rows.map(g => ({ ...g, dL: g.L2 - g.L1, dF: g.F2 - g.F1, dPart: (g.comp2 - g.comp1) / g.aptos * 100 }));
+    const cols = [['k', titulo], ['dfatia', 'Δ fatia', 'fatia'], ['swing', 'Swing', 'swing'], ['pml', '% mun. pró-Lula', 'pmun'], ['pvl', '% votos', 'pvot'], ['m2', 'Margem 2º', 'm2'], ['dL', 'Δ Lula', 'dLula'], ['dF', 'Δ Flávio', 'dFlavio'], ['dPart', 'Δ comp. pp', 'dPart'], ['viradas', 'Viradas', 'virada']];
+    const r = rows.map(g => {
+      const ms = g.regiao !== undefined ? M.filter(m => m.uf === g.k) : M.filter(m => m.regiao === g.k), e = estatMin(ms, minSeta); // linha de UF tem "regiao"; linha de região, não
+      return { ...g, dL: g.L2 - g.L1, dF: g.F2 - g.F1, dPart: (g.comp2 - g.comp1) / g.aptos * 100, dfatia: (g.L2 / (g.L2 + g.F2) - g.L1 / (g.L1 + g.F1)) * 100, pml: e.pl, pvl: e.vlp };
+    });
     r.sort((a, b) => ordDir * ((typeof a[ordUF] === 'string') ? a[ordUF].localeCompare(b[ordUF]) : a[ordUF] - b[ordUF]));
     return `<table><thead><tr>${cols.map(c => `<th data-o="${c[0]}" ${c[2] ? ai(c[2]) : ''}>${c[1]}${ordUF === c[0] ? (ordDir > 0 ? ' ▲' : ' ▼') : ''}</th>`).join('')}</tr></thead><tbody>
-      ${r.map(g => `<tr ${clicavel && g.k !== 'Exterior' ? `data-${clicavel}="${g.k}"` : ''}><td>${esc(g.k.length === 2 ? g.k.toUpperCase() : g.k)}</td><td>${pp(g.swing)}</td><td>${g.pos == null ? '–' : pc(g.pos, 0)}</td><td class="${g.m2 > 0 ? 'L' : 'F'}">${pp(g.m2)}</td><td>${fmt(g.dL)}</td><td>${fmt(g.dF)}</td><td>${pp(g.dPart)}</td><td>${g.viradas ?? ''}</td></tr>`).join('')}</tbody></table>`;
+      ${r.map(g => `<tr ${clicavel && g.k !== 'Exterior' ? `data-${clicavel}="${g.k}"` : ''}><td>${esc(g.k.length === 2 ? g.k.toUpperCase() : g.k)}</td><td>${pp(g.dfatia)}</td><td>${pp(g.swing)}</td><td>${pc(g.pml, 0)}</td><td>${pc(g.pvl, 0)}</td><td class="${g.m2 > 0 ? 'L' : 'F'}">${pp(g.m2)}</td><td>${fmt(g.dL)}</td><td>${fmt(g.dF)}</td><td>${pp(g.dPart)}</td><td>${g.viradas ?? ''}</td></tr>`).join('')}</tbody></table>`;
   }
-  function viewRegioes() { return `<h3>Regiões <small>(clique para analisar)</small></h3>${tabelaGrupo(P.regioes, 'Região', 'reg')}<h3>UFs <small>(clique para analisar)</small></h3><div class="scroll">${tabelaGrupo(P.ufs, 'UF', 'uf')}</div><div class="note">Swing e margem em p.p. de (Lula − Flávio) sobre os votos válidos. Δ = 2º turno − 1º turno. "Mun. c/ swing +" = % dos municípios com a margem deslocada a favor de Lula.</div>`; }
+  function viewRegioes() { return `<h3>Regiões <small>(clique para analisar)</small></h3>${tabelaGrupo(P.regioes, 'Região', 'reg')}<h3>UFs <small>(clique para analisar)</small></h3><div class="scroll">${tabelaGrupo(P.ufs, 'UF', 'uf')}</div><div class="note">Δ fatia = deslocamento de Lula ÷ (Lula + Flávio) entre os turnos (medida principal); swing e margem em p.p. de (Lula − Flávio) sobre os votos válidos. Δ Lula e Δ Flávio = 2º turno − 1º turno. "% mun. pró-Lula" e "% votos" usam o mínimo do controle "mín." das setas (hoje ${minSeta.toLocaleString('pt-BR', { minimumFractionDigits: 1 })} p.p.).</div>`; }
 
   const rankings = {
     viradas: ['Viradas (por votos válidos)', () => M.filter(m => m.virada).sort((a, b) => b.val2 - a.val2)],
     apertadas: ['Mais apertadas no 2º turno (≥ 10 mil válidos)', () => M.filter(m => m.val2 >= 10000).sort((a, b) => Math.abs(a.m2) - Math.abs(b.m2))],
-    swingL: ['Maior swing pró-Lula (≥ 10 mil válidos)', () => M.filter(m => m.val2 >= 10000).sort((a, b) => b.swing - a.swing)],
-    swingF: ['Maior swing pró-Flávio (≥ 10 mil válidos)', () => M.filter(m => m.val2 >= 10000).sort((a, b) => a.swing - b.swing)],
+    fatiaL: ['Maior deslocamento pró-Lula, Δ fatia (≥ 10 mil válidos)', () => M.filter(m => m.ok && m.val2 >= 10000).sort((a, b) => b.dsh - a.dsh)],
+    fatiaF: ['Maior deslocamento pró-Flávio, Δ fatia (≥ 10 mil válidos)', () => M.filter(m => m.ok && m.val2 >= 10000).sort((a, b) => a.dsh - b.dsh)],
     capitais: ['Maiores municípios (por votos válidos)', () => [...M].sort((a, b) => b.val2 - a.val2)],
   };
   function viewRanking() {
     const lista = rankings[rank][1]().filter(m => !busca || (m.nome + ' ' + m.uf).toLowerCase().includes(busca.toLowerCase())).slice(0, 80);
     return `<select id="selRank">${Object.entries(rankings).map(([k, v]) => `<option value="${k}" ${k === rank ? 'selected' : ''}>${v[0]}</option>`).join('')}</select>
     <input type="search" id="busca" placeholder="Filtrar por nome ou UF…" value="${esc(busca)}" style="margin-top:6px">
-    <div class="scroll"><table><thead><tr><th>Município</th><th ${ai('m1')}>Margem 1º</th><th ${ai('m2')}>Margem 2º</th><th ${ai('swing')}>Swing</th><th ${ai('validos')}>Válidos 2º t.</th></tr></thead><tbody>
-    ${lista.map(m => `<tr data-i="${m.uf}${m.tse}"><td>${esc(m.nome)}/${m.uf.toUpperCase()}${m.virada ? ' ⇄' : ''}</td><td class="${m.m1 > 0 ? 'L' : 'F'}">${pp(m.m1)}</td><td class="${m.m2 > 0 ? 'L' : 'F'}">${pp(m.m2)}</td><td>${pp(m.swing)}</td><td>${fmt(m.val2)}</td></tr>`).join('')}</tbody></table></div>
+    <div class="scroll"><table><thead><tr><th>Município</th><th ${ai('m1')}>Margem 1º</th><th ${ai('m2')}>Margem 2º</th><th ${ai('fatia')}>Δ fatia</th><th ${ai('swing')}>Swing</th><th ${ai('validos')}>Válidos 2º t.</th></tr></thead><tbody>
+    ${lista.map(m => `<tr data-i="${m.uf}${m.tse}"><td>${esc(m.nome)}/${m.uf.toUpperCase()}${m.virada ? ' ⇄' : ''}</td><td class="${m.m1 > 0 ? 'L' : 'F'}">${pp(m.m1)}</td><td class="${m.m2 > 0 ? 'L' : 'F'}">${pp(m.m2)}</td><td>${m.ok ? pp(m.dsh) : '–'}</td><td>${pp(m.swing)}</td><td>${fmt(m.val2)}</td></tr>`).join('')}</tbody></table></div>
     <div class="note">⇄ = mudou o líder entre os turnos. Mostra até 80 linhas.</div>`;
   }
 
@@ -550,8 +578,6 @@
   let rankUF = 'viradas';
   const rankUFs = {
     viradas: ['Municípios que viraram (por votos válidos)', ms => ms.filter(m => m.virada).sort((a, b) => b.val2 - a.val2)],
-    swingL: ['Maior swing pró-Lula (≥ 2 mil válidos)', ms => ms.filter(m => m.val2 >= 2000).sort((a, b) => b.swing - a.swing)],
-    swingF: ['Maior swing pró-Flávio (≥ 2 mil válidos)', ms => ms.filter(m => m.val2 >= 2000).sort((a, b) => a.swing - b.swing)],
     fatiaL: ['Maior Δ fatia de Lula (≥ 2 mil válidos)', ms => ms.filter(m => m.ok && m.val2 >= 2000).sort((a, b) => b.dsh - a.dsh)],
     fatiaF: ['Menor Δ fatia de Lula, pró-Flávio (≥ 2 mil válidos)', ms => ms.filter(m => m.ok && m.val2 >= 2000).sort((a, b) => a.dsh - b.dsh)],
     apertadas: ['Mais apertados no 2º turno (≥ 2 mil válidos)', ms => ms.filter(m => m.val2 >= 2000).sort((a, b) => Math.abs(a.m2) - Math.abs(b.m2))],
@@ -567,18 +593,19 @@
     <div class="kpis">
       <div class="kpi"><b class="L">${pc(t.L2 / t.val2 * 100, 2)}</b><span>Lula 2º t. (${mi(t.L2)})</span></div>
       <div class="kpi"><b class="F">${pc(t.F2 / t.val2 * 100, 2)}</b><span>Flávio 2º t. (${mi(t.F2)})</span></div>
-      <div class="kpi" ${ai('swing')}><b>${pp(t.swing, 2)}</b><span>swing da margem (Brasil: ${pp(nac.swing, 2)})</span></div>
+      <div class="kpi" ${ai('fatia')}><b>${pp(t.dfatia, 2)}</b><span>Δ fatia de Lula (Brasil: ${pp(nac.dfatia, 2)}; swing da margem: ${pp(t.swing, 2)})</span></div>
       <div class="kpi" ${ai('virada')}><b>${v.length}</b><span>municípios viraram (${v.filter(x => x.virada === 'F>L').length} p/ Lula, ${v.filter(x => x.virada === 'L>F').length} p/ Flávio)</span></div>
       <div class="kpi" ${ai('abst')}><b>${pc((1 - t.comp1 / t.aptos) * 100,1)} → ${pc((1 - t.comp2 / t.aptos) * 100, 1)}</b><span>abstenção (Brasil: ${pc((1 - nac.comp1 / nac.aptos) * 100, 1)} → ${pc((1 - nac.comp2 / nac.aptos) * 100, 1)})</span></div>
       <div class="kpi" ${ai('m12')}><b class="${t.m1 > 0 ? 'L' : 'F'}">${pp(t.m1)} → ${pp(t.m2)}</b><span>margem 1º → 2º turno (L − F)</span></div>
       ${kpiSwing(ms)}
     </div>
+    ${blocoFaixas(ms)}
     ${blocoDecomp(t)}
     ${ufsRegiao.length ? `<h3>Estados da região <small>(clique para analisar)</small></h3>${tabelaGrupo(ufsRegiao, 'UF', 'uf')}` : ''}
     <h3>Municípios</h3>
     <select id="selRankUF">${Object.entries(rankUFs).map(([k, r]) => `<option value="${k}" ${k === rankUF ? 'selected' : ''}>${r[0]}</option>`).join('')}</select>
-    <div class="scroll" style="margin-top:6px"><table><thead><tr><th>Município</th><th ${ai('m1')}>Margem 1º</th><th ${ai('m2')}>Margem 2º</th><th ${ai('swing')}>Swing</th><th ${ai('fatia')}>Δ fatia</th><th ${ai('validos')}>Válidos 2º t.</th></tr></thead><tbody>
-    ${lista.map(m => `<tr data-i="${m.uf}${m.tse}"><td>${esc(m.nome)}${uf ? '' : '/' + m.uf.toUpperCase()}${m.virada ? ' ⇄' : ''}</td><td class="${m.m1 > 0 ? 'L' : 'F'}">${pp(m.m1)}</td><td class="${m.m2 > 0 ? 'L' : 'F'}">${pp(m.m2)}</td><td>${pp(m.swing)}</td><td>${m.ok ? pp(m.dsh) : '–'}</td><td>${fmt(m.val2)}</td></tr>`).join('') || '<tr><td colspan="6">Nenhum município nesta lista.</td></tr>'}</tbody></table></div>
+    <div class="scroll" style="margin-top:6px"><table><thead><tr><th>Município</th><th ${ai('m1')}>Margem 1º</th><th ${ai('m2')}>Margem 2º</th><th ${ai('fatia')}>Δ fatia</th><th ${ai('swing')}>Swing</th><th ${ai('validos')}>Válidos 2º t.</th></tr></thead><tbody>
+    ${lista.map(m => `<tr data-i="${m.uf}${m.tse}"><td>${esc(m.nome)}${uf ? '' : '/' + m.uf.toUpperCase()}${m.virada ? ' ⇄' : ''}</td><td class="${m.m1 > 0 ? 'L' : 'F'}">${pp(m.m1)}</td><td class="${m.m2 > 0 ? 'L' : 'F'}">${pp(m.m2)}</td><td>${m.ok ? pp(m.dsh) : '–'}</td><td>${pp(m.swing)}</td><td>${fmt(m.val2)}</td></tr>`).join('') || '<tr><td colspan="6">Nenhum município nesta lista.</td></tr>'}</tbody></table></div>
     <div class="note">⇄ = mudou o líder entre os turnos. Mostra até 60 linhas. Clique em um município para ver o detalhe.</div>`;
   }
 
