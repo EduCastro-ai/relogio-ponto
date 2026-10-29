@@ -21,6 +21,8 @@ main { max-width:1180px; margin:0 auto; padding:14px 16px 30px; }
 select, .modo button { font:600 13px Montserrat,sans-serif; border:1px solid var(--line); background:#fff; border-radius:6px; padding:6px 10px; color:var(--ink); }
 .modo { display:inline-flex; gap:0; } .modo button { cursor:pointer; border-radius:0; } .modo button:first-child { border-radius:6px 0 0 6px; } .modo button:last-child { border-radius:0 6px 6px 0; border-left:0; }
 .modo button[aria-pressed="true"] { background:var(--acc); color:#fff; border-color:var(--acc); }
+.faixa { background:#eef6f3; border-left:5px solid var(--v2); border-radius:6px; padding:10px 14px; margin:6px 0 10px; font-size:14px; line-height:1.5; }
+.faixa b { color:var(--hdr); }
 .aviso { background:#fff8e6; border:1px solid #f0d58c; border-radius:8px; padding:10px 14px; font-size:13px; }
 .nota { font-size:12px; color:var(--mut); }
 svg { width:100%; height:auto; display:block; }
@@ -46,8 +48,13 @@ footer { font-size:11.5px; color:var(--mut); padding:4px 2px; }
       <span class="modo" role="group" aria-label="Modo de leitura"><button id="mTudo" aria-pressed="true">Todos os eleitores</button><button id="mMud" aria-pressed="false">Só quem mudou de categoria</button></span>
       <span class="nota" id="resumo"></span>
     </div>
+    <div class="faixa" id="faixa"></div>
     <svg id="grafico" viewBox="0 0 1100 560" role="img" aria-label="Gráfico de fluxo entre o 1º e o 2º turno"></svg>
     <div class="nota" id="notaGrafico"></div>
+  </div>
+  <div class="card"><h2 id="tituloEstados"></h2>
+    <div class="nota" style="margin-bottom:6px">Margem = % de Lula − % de Flávio sobre os votos válidos de cada turno (pontos percentuais). Círculo vazado = 1º turno; círculo cheio = 2º turno. As margens vêm dos totais do TSE (soma das seções) e não dependem do modelo de fluxo. Clique em um estado para ver o fluxo dele.</div>
+    <svg id="estados" role="img" aria-label="Margem de Lula menos Flávio por estado, 1º e 2º turno"></svg>
   </div>
   <div class="card"><h2>Fluxos estimados <span class="nota" id="subTabela"></span></h2><div id="tabela"></div></div>
   <div class="card"><h2>Método e limitações</h2>
@@ -67,6 +74,7 @@ footer { font-size:11.5px; color:var(--mut); padding:4px 2px; }
 <script>
 const D = %%FLUXOS%%;
 const META = %%META%%;
+const OFICIAL = %%OFICIAL%%;
 document.getElementById('t1').textContent = META.t1; document.getElementById('t2').textContent = META.t2;
 const ORIG = ['Lula', 'Flávio', 'Outros candidatos', 'Brancos/nulos', 'Abstenção'], DEST = ['Lula', 'Flávio', 'Brancos/nulos', 'Abstenção'];
 const CORIG = ['#c62828', '#1565c0', '#7a6bb0', '#8a94a3', '#c3c9d2'], CDEST = ['#c62828', '#1565c0', '#8a94a3', '#c3c9d2'];
@@ -144,6 +152,58 @@ function desenhar() {
   document.getElementById('resumo').textContent = `${nomeRec(rec)} · escala: a espessura é proporcional ao número de eleitores`;
   document.getElementById('notaGrafico').textContent = (modo === 'mud' ? 'Mostra só os fluxos entre categorias diferentes (por exemplo, "Outros candidatos → Lula" ou "Abstenção → Flávio"); quem manteve a mesma categoria no 2º turno não aparece. ' : 'Faixas mais claras = eleitores que permaneceram na mesma categoria. ') + 'Passe o mouse sobre uma faixa para ver o valor e o intervalo.' + (nac ? '' : ' Para regiões e estados não há intervalo de incerteza calculado.');
   tabela(T, nac, rec);
+  faixa(rec);
+}
+// Margem Lula − Flávio (p.p. dos válidos de cada turno) e em votos, a partir dos totais oficiais do TSE (soma das seções)
+function margens(rec) {
+  const so = lista => lista.reduce((a, o) => ({ L1: a.L1 + o.L1, F1: a.F1 + o.F1, O1: a.O1 + o.O1, L2: a.L2 + o.L2, F2: a.F2 + o.F2 }), { L1: 0, F1: 0, O1: 0, L2: 0, F2: 0 });
+  const o = rec === 'BR' ? OFICIAL.BR : rec.startsWith('R:') ? so(Object.values(OFICIAL.UF).filter(u => u.regiao === rec.slice(2))) : OFICIAL.UF[rec.slice(2)];
+  const v1 = o.L1 + o.F1 + o.O1, v2 = o.L2 + o.F2;
+  return { m1: (o.L1 - o.F1) / v1 * 100, m2: (o.L2 - o.F2) / v2 * 100, d1: o.L1 - o.F1, d2: o.L2 - o.F2 };
+}
+const sg = (n, d = 1) => (n > 0 ? '+' : n < 0 ? '−' : '') + f1(Math.abs(n), d);
+const sgm = n => (n > 0 ? '+' : n < 0 ? '−' : '') + fm(Math.abs(n));
+function classe(g) { return g.m1 < 0 ? (g.m2 < 0 ? 'reduziu' : 'virou') : 'ampliou'; }
+function faixa(rec) {
+  const g = margens(rec), cl = classe(g), dl = g.m2 - g.m1;
+  const frase = cl === 'reduziu' ? `Flávio liderava no 1º turno por <b>${f1(-g.m1)} p.p.</b> e a vantagem dele caiu para <b>${f1(-g.m2)} p.p.</b>: Lula <b>reduziu a desvantagem</b>.`
+    : cl === 'virou' ? `Flávio liderava no 1º turno por <b>${f1(-g.m1)} p.p.</b> e Lula passou à frente com <b>${f1(g.m2)} p.p.</b>: <b>virou</b> o resultado.`
+    : `Lula já liderava no 1º turno por <b>${f1(g.m1)} p.p.</b> e passou a <b>${f1(g.m2)} p.p.</b>: Lula <b>ampliou a vantagem</b>.`;
+  document.getElementById('faixa').innerHTML = `<b>${nomeRec(rec)}:</b> ${frase}<br>Margem de Lula sobre Flávio em votos: ${sgm(g.d1)} no 1º turno → ${sgm(g.d2)} no 2º turno (${sg(dl)} p.p. a favor de Lula).`;
+}
+function estados() {
+  const dados = Object.keys(NOMEUF).map(u => ({ u, ...margens('U:' + u) })).map(e => ({ ...e, dl: e.m2 - e.m1, cl: classe(e) }));
+  const pro = dados.filter(e => e.dl > 0).length, cont = k => dados.filter(e => e.cl === k).length;
+  document.getElementById('tituloEstados').textContent = `Em ${pro} dos ${dados.length} estados a margem se moveu a favor de Lula`;
+  const grupos = [
+    ['Flávio liderava no 1º turno', dados.filter(e => e.m1 < 0).sort((a, b) => b.dl - a.dl), `${cont('reduziu')} reduziram a desvantagem e ${cont('virou')} virou`],
+    ['Lula já liderava no 1º turno', dados.filter(e => e.m1 >= 0).sort((a, b) => b.dl - a.dl), `${cont('ampliou')} ampliaram a vantagem`],
+  ];
+  const sv = document.getElementById('estados'), LH = 22, X0 = 190, X1 = 930, VMIN = -55, VMAX = 60, AL = 56 + grupos.reduce((a, g) => a + g[1].length * LH + 38, 0);
+  sv.setAttribute('viewBox', `0 0 1100 ${AL}`); sv.innerHTML = '';
+  const x = v => X0 + (v - VMIN) / (VMAX - VMIN) * (X1 - X0);
+  for (let t = -50; t <= 60; t += 10) { el('line', { x1: x(t), x2: x(t), y1: 22, y2: AL - 22, stroke: t === 0 ? '#555' : '#e6eaee' }, sv); el('text', { x: x(t), y: AL - 8, 'text-anchor': 'middle', 'font-size': 11, fill: '#7b8696' }, sv).textContent = (t > 0 ? '+' : t < 0 ? '−' : '') + Math.abs(t); }
+  el('text', { x: x(-54), y: 12, 'font-size': 11.5, 'font-weight': 700, fill: '#1565c0' }, sv).textContent = '← Flávio na frente';
+  el('text', { x: x(59), y: 12, 'text-anchor': 'end', 'font-size': 11.5, 'font-weight': 700, fill: '#c62828' }, sv).textContent = 'Lula na frente →';
+  let y = 34;
+  grupos.forEach(([tit, lista, resumo]) => {
+    el('text', { x: 8, y: y + 8, 'font-size': 12.5, 'font-weight': 700, fill: '#0A2824' }, sv).textContent = `${tit} (${lista.length}): ${resumo}`;
+    y += 26;
+    lista.forEach(e => {
+      const yy = y + LH / 2, g = el('g', { style: 'cursor:pointer' }, sv);
+      el('rect', { x: 0, y: y, width: 1100, height: LH, fill: 'transparent' }, g);
+      el('text', { x: X0 - 10, y: yy, 'text-anchor': 'end', 'dominant-baseline': 'central', 'font-size': 12.5 }, g).textContent = NOMEUF[e.u];
+      el('line', { x1: x(e.m1), x2: x(e.m2), y1: yy, y2: yy, stroke: '#0A413B', 'stroke-width': 2.4 }, g);
+      el('circle', { cx: x(e.m1), cy: yy, r: 5, fill: '#fff', stroke: e.m1 < 0 ? '#1565c0' : '#c62828', 'stroke-width': 2 }, g);
+      el('circle', { cx: x(e.m2), cy: yy, r: 5, fill: e.m2 < 0 ? '#1565c0' : '#c62828' }, g);
+      el('text', { x: X1 + 14, y: yy, 'dominant-baseline': 'central', 'font-size': 12, 'font-weight': 700, fill: '#0A413B' }, g).textContent = `${sg(e.dl)} p.p.` + (e.cl === 'virou' ? ' · virou' : '');
+      g.addEventListener('mousemove', ev => mostrarTip(ev, `<b>${NOMEUF[e.u]}</b><br>1º turno: ${sg(e.m1)} p.p. → 2º turno: ${sg(e.m2)} p.p.<br>Variação: ${sg(e.dl)} p.p. a favor de Lula<br><i>Clique para ver o fluxo</i>`));
+      g.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+      g.addEventListener('click', () => { sel.value = 'U:' + e.u; desenhar(); tip.style.display = 'none'; document.getElementById('selRec').scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+      y += LH;
+    });
+    y += 12;
+  });
 }
 const d3sum = a => a.reduce((x, y) => x + y, 0);
 function tabela(T, nac, rec) {
@@ -157,6 +217,7 @@ function tabela(T, nac, rec) {
 sel.onchange = desenhar;
 const botoes = { tudo: document.getElementById('mTudo'), mud: document.getElementById('mMud') };
 Object.entries(botoes).forEach(([k, b]) => b.onclick = () => { modo = k; Object.entries(botoes).forEach(([kk, bb]) => bb.setAttribute('aria-pressed', kk === k)); desenhar(); });
+estados();
 desenhar();
 </script>
 </body>

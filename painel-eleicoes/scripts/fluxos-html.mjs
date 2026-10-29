@@ -17,8 +17,12 @@ for (const w of [400, 600, 700]) {
 }
 const fluxos = JSON.parse(await ler('dados', 'fluxos.json'));
 if (!fluxos.bootstrap) throw new Error('dados/fluxos.json sem bootstrap: rode python scripts/fluxos.py --boot 100');
-const meta = JSON.parse(await ler('dados', 'analise.json')).meta.atualizado;
-const trocas = { FONTS: fontes, LOGO: `data:image/png;base64,${logo}`, FLUXOS: JSON.stringify(fluxos), META: JSON.stringify(meta) };
+const analise = JSON.parse(await ler('dados', 'analise.json'));
+const meta = analise.meta.atualizado;
+// totais oficiais (soma das seções = totais do TSE) para as margens; o modelo de fluxo só entra nos fluxos
+const pega = (o) => ({ L1: o.L1, F1: o.F1, O1: o.O1, L2: o.L2, F2: o.F2 });
+const oficial = { BR: pega(analise.brasil), UF: Object.fromEntries(analise.ufs.map((u) => [u.k.toUpperCase(), { ...pega(u), regiao: u.regiao }])) };
+const trocas = { FONTS: fontes, LOGO: `data:image/png;base64,${logo}`, FLUXOS: JSON.stringify(fluxos), META: JSON.stringify(meta), OFICIAL: JSON.stringify(oficial) };
 for (const [k, v] of Object.entries(trocas)) {
   if (!html.includes(`%%${k}%%`)) throw new Error(`marcador %%${k}%% não encontrado`);
   html = html.replace(`%%${k}%%`, () => v);
