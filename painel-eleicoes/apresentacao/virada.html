@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Por que Lula virou no 2º turno</title>
+<title>Análise da Virada Eleitoral no 2º Turno - Eleições 2026</title>
 <style>
 %%FONTS%%
 /* Identidade Portofino (tema do template corporativo PMFO): Montserrat; verdes 0A2824 / 0A413B / 158775 / 05C18B.
@@ -27,7 +27,7 @@ html, body { margin:0; height:100%; background:#0b1512; font-family:Montserrat,"
 .capa, .fim { background:var(--vd); color:#fff; }
 .capa::before, .fim::before { background:var(--v4); height:10px; }
 .capa .logo { position:absolute; left:70px; top:60px; height:62px; }
-.capa h1 { position:absolute; left:70px; top:230px; width:1000px; margin:0; font-size:56px; line-height:1.1; font-weight:700; }
+.capa h1 { position:absolute; left:70px; top:200px; width:1100px; margin:0; font-size:48px; line-height:1.1; font-weight:700; }
 .capa h1 span { color:var(--v4); }
 .capa .sub { position:absolute; left:70px; top:420px; width:900px; font-size:20px; line-height:1.5; color:var(--v6); }
 .capa .data { position:absolute; left:70px; bottom:60px; font-size:13px; color:#9bb8ad; line-height:1.6; width:1100px; }
@@ -88,7 +88,9 @@ const nome = s => s.toLowerCase().replace(/(^|[\s-])([a-zà-ú])/g, (m, a, b) =>
 const L = '#c62828', F = '#1565c0', VD = '#0A2824', VM = '#0A413B', V2 = '#158775', V3 = '#3ABAA4', V4 = '#05C18B', CZ = '#9aa6b5', CZL = '#d9dee5';
 const REGC = { Norte: '#6EAC69', Nordeste: '#e0a526', 'Centro-Oeste': '#8a6bbf', Sudeste: '#158775', Sul: '#3a7ca5' };
 const T1 = R.meta.atualizado.t1, T2 = R.meta.atualizado.t2;
-const FONTE = `Fonte: TSE, portal de resultados (1º turno ${T1}; 2º turno ${T2}); cálculo PMFO sobre a soma dos municípios. Dados podem estar desatualizados ou conter erros: conferir em resultados.tse.jus.br.`;
+// Textos de fonte definidos pelo Compliance: com cálculo próprio (usado em todos os slides, pois todos trazem variações, saldos ou percentuais calculados) e sem cálculo (disponível para slides que mostrem só números do TSE)
+const FONTE = `Fonte: Tribunal Superior Eleitoral (TSE). Este material foi elaborado pela Portofino a partir de dados públicos disponibilizados pelo TSE, incluindo cálculos e análises próprias.`;
+const FONTE_SEM_CALCULO = `Fonte: Tribunal Superior Eleitoral (TSE). A Portofino utilizou exclusivamente dados públicos disponibilizados pelo TSE. Eventuais divergências, correções ou atualizações devem ser verificadas na base oficial do Tribunal.`;
 const leadV1 = B.F1 - B.L1, leadV2 = B.L2 - B.F2;               // vantagem em votos: Flávio no 1º turno, Lula no 2º
 const totInc = B.dL + B.dF, shL = B.dL / totInc * 100;            // votos a mais dos dois finalistas e quanto ficou com Lula
 const base1 = B.L1 / (B.L1 + B.F1) * 100;                         // fatia de Lula entre os finalistas no 1º turno
@@ -154,9 +156,9 @@ const slides = [];
 const slide = (kick, titulo, sub, corpo, draw, o = {}) => slides.push({ kick, titulo, sub, corpo, draw, ...o });
 
 // 1. capa
-slides.push({ capa: true, html: () => `<section class="slide capa"><img class="logo" src="${LOGO}" alt="Portofino"><h1>Por que Lula <span>virou</span> no 2º turno</h1>
+slides.push({ capa: true, html: () => `<section class="slide capa"><img class="logo" src="${LOGO}" alt="Portofino"><h1>Análise da <span>Virada Eleitoral</span> no 2º Turno<br>Eleições 2026</h1>
 <div class="sub">Análise por município dos resultados da eleição presidencial de 2026: regiões, estados, capitais, tamanho dos municípios, viradas e abstenção.</div>
-<div class="data">Dados do TSE: 1º turno em 04/10/2026 (apuração ${T1}) e 2º turno em 25/10/2026 (apuração ${T2}).<br>Elaboração PMFO · ${new Date(R.meta.geradoEm).toLocaleDateString('pt-BR')}. Os dados podem estar desatualizados ou conter erros; conferir na fonte oficial (resultados.tse.jus.br).</div></section>` });
+<div class="data"><b>Metodologia e Limitações:</b> Esta análise foi elaborada exclusivamente a partir de dados públicos divulgados pelo Tribunal Superior Eleitoral (TSE). Os resultados refletem as informações disponíveis na data de extração. Eventuais correções, revisões ou divergências devem ser verificadas diretamente junto ao TSE, fonte oficial dos dados eleitorais. A Portofino não se responsabiliza por alterações posteriores nas bases oficiais ou por inconsistências eventualmente existentes nos dados de origem.<br>Apuração TSE: 1º turno (04/10/2026) em ${T1}; 2º turno (25/10/2026) em ${T2}. Data de extração: ${new Date(R.meta.geradoEm).toLocaleDateString('pt-BR')}.</div></section>` });
 
 // 2. resumo
 slide('Resumo', 'A virada foi ampla: Lula ficou com cerca de três em cada quatro votos a mais dos finalistas',
@@ -402,21 +404,6 @@ slide('Síntese', 'Cinco razões que os dados sustentam para a virada',
   <div class="kpi" style="border-color:${V2}"><b style="font-size:19px">4. Minas Gerais e as periferias do Sudeste mudaram o mapa</b><span>${UF.mg.viradas} das ${S.viradas} viradas são mineiras; MG foi o único estado a trocar de lado (${pp(mg.m1)} para ${pp(mg.m2)}), e o Sudeste tem ${REG.Sudeste.viradas} viradas e ${pc(sh(REG.Sudeste.saldo), 0)} do saldo.</span></div>
   <div class="kpi" style="border-color:${V2}"><b style="font-size:19px">5. No Nordeste, base alta e mais gente votando; no Norte, empate sem mobilização</b><span>Nordeste: Lula +${mi(REG.Nordeste.dL)} contra +${mi(REG.Nordeste.dF)} de Flávio (${pc(sh(REG.Nordeste.saldo), 0)} do saldo). Norte: margem de ${pp(REG.Norte.m1)} a ${pp(REG.Norte.m2)}, com abstenção maior.</span></div>
   </div>`);
-
-// 16. limites
-slide('Limites e próximos passos', 'O que estes dados não mostram, e o que fazer para ir além',
-  'Cuidados de leitura e análises que agregam',
-  `<div class="row"><div class="col"><div class="box"><h4>Cuidados de leitura</h4><ul>
-   <li><b>Voto secreto</b>: os números são saldos entre turnos por município. Não dá para dizer quem migrou de quem.</li>
-   <li><b>Falácia ecológica</b>: características do município (capital, tamanho, região) não são características do eleitor.</li>
-   <li><b>% de municípios ≠ % de eleitores</b>: grandes cidades pesam mais nos votos; por isso o painel mostra os dois percentuais.</li>
-   <li><b>Efeito mecânico do swing</b>: por isso a medida principal é o Δ fatia, que ignora os outros candidatos do 1º turno.</li>
-   <li><b>Causas</b>: os dados mostram onde e quanto, não por quê (campanha, rejeição, fatos do período).</li></ul></div></div>
-  <div class="col"><div class="box"><h4>Para ir além</h4><ul>
-   <li><b>Perfil do eleitorado por município</b> (TSE: idade, escolaridade, gênero) e <b>renda</b> (Censo 2022, IBGE) para testar se esses recortes explicam o deslocamento.</li>
-   <li><b>Resultado do 2º turno por seção</b> (quando o TSE publicar): vira a análise por bairro e local de votação dentro das grandes cidades.</li>
-   <li><b>Pesquisas de opinião</b> com identificação de voto, que respondem sobre perfis individuais, o que os dados do TSE não fazem.</li></ul></div>
-   <div class="nota" style="margin-top:12px">${FONTE}</div></div></div>`);
 
 // 17. apêndice capitais
 const mc = Math.ceil(cap.length / 2);
