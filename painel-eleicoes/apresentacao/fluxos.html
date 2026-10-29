@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estimativa de transferência de votos entre o 1º e o 2º turno - Eleições 2026</title>
+<style>
+%%FONTS%%
+/* Identidade Portofino (tema do template corporativo): Montserrat; verdes 0A2824 / 0A413B / 158775 / 05C18B.
+   Vermelho (Lula) e azul (Flávio) são cores de leitura do resultado, como no painel. */
+:root { --bg:#f6f7f9; --card:#fff; --ink:#1b2430; --mut:#5d6877; --line:#dde2e9; --L:#c62828; --F:#1565c0; --hdr:#0A2824; --acc:#0A413B; --v2:#158775; }
+* { box-sizing:border-box; }
+body { margin:0; font:14px/1.5 Montserrat,"Segoe UI",system-ui,sans-serif; background:var(--bg); color:var(--ink); }
+header { padding:10px 18px; display:flex; flex-wrap:wrap; gap:6px 18px; align-items:center; background:var(--hdr); color:#fff; border-bottom:3px solid #05C18B; }
+header img { height:42px; display:block; }
+header h1 { margin:0; font-size:17px; font-weight:600; }
+header small { display:block; color:#ABC997; font-size:11px; margin-top:2px; }
+main { max-width:1180px; margin:0 auto; padding:14px 16px 30px; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:12px; }
+.controls { display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; margin-bottom:8px; }
+select, .modo button { font:600 13px Montserrat,sans-serif; border:1px solid var(--line); background:#fff; border-radius:6px; padding:6px 10px; color:var(--ink); }
+.modo { display:inline-flex; gap:0; } .modo button { cursor:pointer; border-radius:0; } .modo button:first-child { border-radius:6px 0 0 6px; } .modo button:last-child { border-radius:0 6px 6px 0; border-left:0; }
+.modo button[aria-pressed="true"] { background:var(--acc); color:#fff; border-color:var(--acc); }
+.aviso { background:#fff8e6; border:1px solid #f0d58c; border-radius:8px; padding:10px 14px; font-size:13px; }
+.nota { font-size:12px; color:var(--mut); }
+svg { width:100%; height:auto; display:block; }
+svg text { font-family:Montserrat,"Segoe UI",sans-serif; }
+table { border-collapse:collapse; width:100%; font-size:13px; }
+th { text-align:right; font-size:11.5px; color:var(--mut); font-weight:600; padding:6px; border-bottom:2px solid var(--v2); }
+td { text-align:right; padding:6px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums; }
+th:first-child, td:first-child { text-align:left; }
+td small { color:var(--mut); display:block; font-size:11px; }
+#tip { position:fixed; display:none; pointer-events:none; background:#0A2824; color:#fff; padding:8px 11px; border-radius:7px; font-size:12.5px; line-height:1.45; max-width:300px; z-index:9; box-shadow:0 4px 14px rgba(0,0,0,.25); }
+h2 { font-size:15px; margin:0 0 6px; color:var(--hdr); }
+ul { margin:6px 0 0; padding-left:18px; } li { margin:4px 0; }
+footer { font-size:11.5px; color:var(--mut); padding:4px 2px; }
+</style>
+</head>
+<body>
+<header><img src="%%LOGO%%" alt="Portofino"><div><h1>Estimativa de transferência de votos entre o 1º e o 2º turno</h1><small>Eleições presidenciais 2026 · estimativa estatística por seção eleitoral</small></div></header>
+<main>
+  <div class="aviso"><b>Estimativa, não dado do TSE.</b> O voto é secreto: o TSE publica só os totais de cada seção em cada turno, não quem votou em quem. Os fluxos abaixo são estimados por modelo estatístico (inferência ecológica) e dependem das suposições dele. Leia o quadro "Método e limitações" antes de usar.</div>
+  <div class="card" style="margin-top:12px">
+    <div class="controls">
+      <label>Recorte <select id="selRec"></select></label>
+      <span class="modo" role="group" aria-label="Modo de leitura"><button id="mTudo" aria-pressed="true">Todos os eleitores</button><button id="mMud" aria-pressed="false">Só quem mudou de categoria</button></span>
+      <span class="nota" id="resumo"></span>
+    </div>
+    <svg id="grafico" viewBox="0 0 1100 560" role="img" aria-label="Gráfico de fluxo entre o 1º e o 2º turno"></svg>
+    <div class="nota" id="notaGrafico"></div>
+  </div>
+  <div class="card"><h2>Fluxos estimados <span class="nota" id="subTabela"></span></h2><div id="tabela"></div></div>
+  <div class="card"><h2>Método e limitações</h2>
+    <ul>
+      <li><b>Dados:</b> resultado presidencial por seção eleitoral (499.248 seções), 1º e 2º turnos, dados abertos do TSE. Em cada seção o 1º turno é separado em Lula, Flávio, outros candidatos, brancos/nulos e abstenção; o 2º turno, em Lula, Flávio, brancos/nulos e abstenção. As somas conferem com os totais do TSE.</li>
+      <li><b>Modelo:</b> estimativa de máxima verossimilhança (EM multinomial), com probabilidades de transição próprias de cada UF. Supõe que, dentro da UF, o eleitor de cada origem se comporta de modo parecido nas seções.</li>
+      <li><b>Intervalo:</b> bootstrap de municípios (100 repetições), só para o total do Brasil. Mede a incerteza de amostragem e <b>não</b> inclui o viés do modelo. Para regiões e estados não há intervalo calculado.</li>
+      <li><b>Validação por simulação:</b> com comportamento homogêneo ou com ruído aleatório entre seções, o erro nos fluxos principais ficou abaixo de 1%. Quando o comportamento muda com o perfil da seção (efeito contextual), o fluxo "Outros → Lula" foi subestimado em 16% a 35% e "Outros → Flávio" superestimado em 6% a 12%.</li>
+      <li><b>Confiabilidade:</b> os fluxos de brancos/nulos e de abstenção são os menos confiáveis. Fluxos muito pequenos (como Lula → Flávio, estimado perto de zero) devem ser lidos como "praticamente nenhum", não como valor exato.</li>
+      <li><b>Aptos:</b> em 55.722 seções (11%) o número de aptos difere entre os turnos (eleitores trocaram de seção; a soma nacional é igual). Em 95% delas a diferença é de até 2 eleitores; a origem foi reescalada ao total do 2º turno.</li>
+      <li><b>Uso:</b> trate como ordem de grandeza e hipótese de trabalho, não como medida. Decisões ou comunicação externa exigem conferir os dados na fonte oficial (TSE).</li>
+    </ul>
+  </div>
+  <footer>Fonte: Tribunal Superior Eleitoral (TSE). Este material foi elaborado pela Portofino a partir de dados públicos disponibilizados pelo TSE, incluindo cálculos e análises próprias. Apuração TSE: 1º turno em <span id="t1"></span>; 2º turno em <span id="t2"></span>. Os resultados refletem as informações disponíveis na data de extração; eventuais correções, revisões ou divergências devem ser verificadas diretamente junto ao TSE.</footer>
+</main>
+<div id="tip"></div>
+<script>
+const D = %%FLUXOS%%;
+const META = %%META%%;
+document.getElementById('t1').textContent = META.t1; document.getElementById('t2').textContent = META.t2;
+const ORIG = ['Lula', 'Flávio', 'Outros candidatos', 'Brancos/nulos', 'Abstenção'], DEST = ['Lula', 'Flávio', 'Brancos/nulos', 'Abstenção'];
+const CORIG = ['#c62828', '#1565c0', '#7a6bb0', '#8a94a3', '#c3c9d2'], CDEST = ['#c62828', '#1565c0', '#8a94a3', '#c3c9d2'];
+const DIAG = [0, 1, null, 2, 3];                       // origem i -> mesmo destino (permaneceu na categoria)
+const REGIAO = { AC:'Norte', AP:'Norte', AM:'Norte', PA:'Norte', RO:'Norte', RR:'Norte', TO:'Norte', AL:'Nordeste', BA:'Nordeste', CE:'Nordeste', MA:'Nordeste', PB:'Nordeste', PE:'Nordeste', PI:'Nordeste', RN:'Nordeste', SE:'Nordeste', DF:'Centro-Oeste', GO:'Centro-Oeste', MT:'Centro-Oeste', MS:'Centro-Oeste', ES:'Sudeste', MG:'Sudeste', RJ:'Sudeste', SP:'Sudeste', PR:'Sul', RS:'Sul', SC:'Sul' };
+const NOMEUF = { AC:'Acre', AL:'Alagoas', AP:'Amapá', AM:'Amazonas', BA:'Bahia', CE:'Ceará', DF:'Distrito Federal', ES:'Espírito Santo', GO:'Goiás', MA:'Maranhão', MT:'Mato Grosso', MS:'Mato Grosso do Sul', MG:'Minas Gerais', PA:'Pará', PB:'Paraíba', PR:'Paraná', PE:'Pernambuco', PI:'Piauí', RJ:'Rio de Janeiro', RN:'Rio Grande do Norte', RS:'Rio Grande do Sul', RO:'Rondônia', RR:'Roraima', SC:'Santa Catarina', SP:'São Paulo', SE:'Sergipe', TO:'Tocantins' };
+const f0 = n => Math.round(n).toLocaleString('pt-BR');
+const f1 = (n, d = 1) => n.toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d });
+const fm = n => n >= 1e6 ? f1(n / 1e6, 2) + ' mi' : n >= 1e3 ? f0(n / 1e3) + ' mil' : f0(n);
+const soma = (ms) => ms.reduce((a, m) => a.map((l, i) => l.map((v, j) => v + m[i][j])), ms[0].map(l => l.map(() => 0)));
+
+const opcoes = [['BR', 'Brasil (todas as seções, inclui o exterior)']];
+const sel = document.getElementById('selRec');
+sel.innerHTML = '<option value="BR">Brasil (inclui o exterior)</option><optgroup label="Regiões">' + ['Norte', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul'].map(r => `<option value="R:${r}">${r}</option>`).join('') + '</optgroup><optgroup label="Estados">' + Object.entries(NOMEUF).map(([k, v]) => `<option value="U:${k}">${v}</option>`).join('') + '</optgroup>';
+let modo = 'tudo';
+const matriz = rec => {
+  if (rec === 'BR') return D.estimativa;
+  if (rec.startsWith('R:')) return soma(Object.entries(D.estimativa_por_uf).filter(([u]) => REGIAO[u] === rec.slice(2)).map(([, m]) => m));
+  return D.estimativa_por_uf[rec.slice(2)];
+};
+const nomeRec = rec => rec === 'BR' ? 'Brasil' : rec.startsWith('R:') ? 'Região ' + rec.slice(2) : NOMEUF[rec.slice(2)];
+
+const svg = document.getElementById('grafico'), tip = document.getElementById('tip');
+const W = 1100, H = 560, NW = 18, XL = 230, XR = W - 230 - NW, MY = 34, GAP = 16, NS = 'http://www.w3.org/2000/svg';
+const el = (tag, at, pai = svg) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(at)) e.setAttribute(k, v); pai.appendChild(e); return e; };
+const mostrarTip = (ev, html) => { tip.innerHTML = html; tip.style.display = 'block'; tip.style.left = Math.min(ev.clientX + 14, innerWidth - 320) + 'px'; tip.style.top = (ev.clientY + 14) + 'px'; };
+
+function desenhar() {
+  const rec = sel.value, T = matriz(rec), nac = rec === 'BR';
+  svg.innerHTML = '';
+  const links = [];
+  for (let i = 0; i < 5; i++) for (let j = 0; j < 4; j++) { const v = T[i][j]; if (v <= 0) continue; if (modo === 'mud' && DIAG[i] === j) continue; links.push({ i, j, v }); }
+  const sL = ORIG.map((_, i) => links.filter(l => l.i === i).reduce((a, l) => a + l.v, 0)), sR = DEST.map((_, j) => links.filter(l => l.j === j).reduce((a, l) => a + l.v, 0));
+  const total = Math.max(d3sum(sL), d3sum(sR)) || 1;
+  const k = (H - 2 * MY - 4 * GAP) / total;
+  const alt = (arr, gaps) => d3sum(arr) * k + gaps * GAP;
+  const y0L = MY + (H - 2 * MY - alt(sL, 4)) / 2, y0R = MY + (H - 2 * MY - alt(sR, 3)) / 2;
+  const yL = [], yR = []; let a = y0L; sL.forEach((v, i) => { yL[i] = a; a += v * k + GAP; }); a = y0R; sR.forEach((v, j) => { yR[j] = a; a += v * k + GAP; });
+  el('text', { x: XL + NW / 2, y: 16, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: '#0A2824' }).textContent = '1º turno';
+  el('text', { x: XR + NW / 2, y: 16, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 700, fill: '#0A2824' }).textContent = '2º turno';
+  const oL = yL.slice(), oR = yR.slice(), rib = [];
+  const ordem = links.slice().sort((p, q) => p.i - q.i || p.j - q.j); // posição de saída em cada origem
+  const saida = {}; ordem.forEach(l => { saida[l.i + '_' + l.j] = oL[l.i]; oL[l.i] += l.v * k; });
+  links.slice().sort((p, q) => p.j - q.j || p.i - q.i).forEach(l => { l.ty = oR[l.j]; oR[l.j] += l.v * k; });
+  links.forEach(l => { l.sy = saida[l.i + '_' + l.j]; l.w = l.v * k; });
+  const gl = el('g', {}), gn = el('g', {}), gt = el('g', {});
+  const xm = (XL + NW + XR) / 2, x0 = XL + NW, x1 = XR;
+  links.forEach(l => {
+    const d = `M${x0},${l.sy} C${xm},${l.sy} ${xm},${l.ty} ${x1},${l.ty} L${x1},${l.ty + l.w} C${xm},${l.ty + l.w} ${xm},${l.sy + l.w} ${x0},${l.sy + l.w} Z`;
+    const p = el('path', { d, fill: CDEST[l.j], 'fill-opacity': DIAG[l.i] === l.j ? .28 : .6, stroke: CDEST[l.j], 'stroke-opacity': .5, 'stroke-width': .4 }, gl);
+    const pctOrig = l.v / T[l.i].reduce((x, y) => x + y, 0) * 100;
+    const ic = nac ? `<br>Intervalo de 95%: ${fm(D.bootstrap.p025[l.i][l.j])} a ${fm(D.bootstrap.p975[l.i][l.j])}` : '<br><i>Intervalo não calculado para este recorte</i>';
+    const lim = nac ? `<br>Limites exatos: ${fm(D.limite_inferior[l.i][l.j])} a ${fm(D.limite_superior[l.i][l.j])}` : '';
+    p.addEventListener('mousemove', ev => { gl.querySelectorAll('path').forEach(q => q.style.opacity = q === p ? 1 : .25); mostrarTip(ev, `<b>${ORIG[l.i]} (1º t.) → ${DEST[l.j]} (2º t.)</b><br>Estimativa: <b>${fm(l.v)}</b> (${f1(pctOrig)}% de quem era ${ORIG[l.i].toLowerCase()} no 1º turno)${ic}${lim}`); });
+    p.addEventListener('mouseleave', () => { gl.querySelectorAll('path').forEach(q => q.style.opacity = 1); tip.style.display = 'none'; });
+    if (l.w > 15 && !(DIAG[l.i] === l.j && modo === 'tudo' && l.w > 160)) el('text', { x: x0 + 14, y: l.sy + l.w / 2, 'dominant-baseline': 'central', 'font-size': 11.5, 'font-weight': 700, fill: '#fff', 'pointer-events': 'none', style: 'paint-order:stroke;stroke:rgba(0,0,0,.25);stroke-width:2px' }, gt).textContent = fm(l.v);
+  });
+  // rótulos: nós pequenos viram uma linha só e todos são empilhados sem colidir (espaço mínimo entre rótulos)
+  const rot = (x, y, tit, sub, ancora, compacto) => {
+    if (compacto) { el('text', { x, y, 'text-anchor': ancora, 'font-size': 12, 'font-weight': 700, fill: '#1b2430' }, gt).textContent = `${tit} · ${sub}`; return; }
+    el('text', { x, y: y - 3, 'text-anchor': ancora, 'font-size': 13, 'font-weight': 700, fill: '#1b2430' }, gt).textContent = tit; el('text', { x, y: y + 12, 'text-anchor': ancora, 'font-size': 11.5, fill: '#5d6877' }, gt).textContent = sub;
+  };
+  const rotular = (nomes, tot, ys, x, ancora, texto, cores, nx) => {
+    let ultimo = -1e9;
+    nomes.forEach((n, i) => {
+      const h = Math.max(tot[i] * k, 1); el('rect', { x: nx, y: ys[i], width: NW, height: h, fill: cores[i], rx: 2 }, gn);
+      if (tot[i] <= 0) return;
+      const compacto = h < 28, alt = compacto ? 17 : 31; let y = compacto ? ys[i] + h / 2 + 4 : ys[i] + Math.min(h / 2, 20);
+      y = Math.max(y, ultimo + alt); ultimo = y; rot(x, y, n, compacto ? fm(tot[i]) : texto(tot[i]), ancora, compacto);
+    });
+  };
+  rotular(ORIG, sL, yL, XL - 10, 'end', v => modo === 'mud' ? `${fm(v)} mudaram de categoria` : `${fm(v)} no 1º turno`, CORIG, XL);
+  rotular(DEST, sR, yR, XR + NW + 10, 'start', v => modo === 'mud' ? `${fm(v)} vieram de outra categoria` : `${fm(v)} no 2º turno`, CDEST, XR);
+  svg.appendChild(gl); svg.appendChild(gn); svg.appendChild(gt);
+  document.getElementById('resumo').textContent = `${nomeRec(rec)} · escala: a espessura é proporcional ao número de eleitores`;
+  document.getElementById('notaGrafico').textContent = (modo === 'mud' ? 'Mostra só os fluxos entre categorias diferentes (por exemplo, "Outros candidatos → Lula" ou "Abstenção → Flávio"); quem manteve a mesma categoria no 2º turno não aparece. ' : 'Faixas mais claras = eleitores que permaneceram na mesma categoria. ') + 'Passe o mouse sobre uma faixa para ver o valor e o intervalo.' + (nac ? '' : ' Para regiões e estados não há intervalo de incerteza calculado.');
+  tabela(T, nac, rec);
+}
+const d3sum = a => a.reduce((x, y) => x + y, 0);
+function tabela(T, nac, rec) {
+  document.getElementById('subTabela').textContent = `(${nomeRec(rec)}; eleitores e % da origem${nac ? '; intervalo de 95% por bootstrap' : ''})`;
+  let h = '<table><thead><tr><th>1º turno ↓ / 2º turno →</th>' + DEST.map(d => `<th>${d}</th>`).join('') + '<th>Total</th></tr></thead><tbody>';
+  T.forEach((l, i) => { const tot = d3sum(l); h += `<tr><td><b>${ORIG[i]}</b></td>` + l.map((v, j) => `<td>${fm(v)}<small>${f1(v / tot * 100)}%${nac ? ` · ${fm(D.bootstrap.p025[i][j])} a ${fm(D.bootstrap.p975[i][j])}` : ''}</small></td>`).join('') + `<td>${fm(tot)}</td></tr>`; });
+  const col = DEST.map((_, j) => d3sum(T.map(l => l[j])));
+  h += '<tr><td><b>Total 2º turno</b></td>' + col.map(v => `<td>${fm(v)}</td>`).join('') + `<td>${fm(d3sum(col))}</td></tr></tbody></table>`;
+  document.getElementById('tabela').innerHTML = h;
+}
+sel.onchange = desenhar;
+const botoes = { tudo: document.getElementById('mTudo'), mud: document.getElementById('mMud') };
+Object.entries(botoes).forEach(([k, b]) => b.onclick = () => { modo = k; Object.entries(botoes).forEach(([kk, bb]) => bb.setAttribute('aria-pressed', kk === k)); desenhar(); });
+desenhar();
+</script>
+</body>
+</html>

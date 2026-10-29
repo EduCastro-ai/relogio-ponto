@@ -47,7 +47,7 @@ def limites(r, c):
     return inf, sup
 
 
-def em(r, c, p0=None, iteracoes=300, tol=1e-9):
+def em(r, c, p0=None, iteracoes=3000, tol=1e-9):
     """EM multinomial: c_s ~ Multinomial(N_s, sum_i (r_si/N_s) P_i·). Devolve P (5×4, linhas somam 1)."""
     p = np.full((r.shape[1], c.shape[1]), 1 / c.shape[1]) if p0 is None else p0.copy()
     if p0 is None:  # ponto de partida: destino proporcional ao total, ligeiramente diferenciado por origem
@@ -71,12 +71,24 @@ def fluxo_total(r, c, p):
     return p * (r.T @ razao)
 
 
-def estimar(df, r, c, iteracoes=300):
-    """Estima P por UF e soma os fluxos esperados. Devolve T nacional (5×4) e T por UF."""
+def ajustar_margens(t, linhas, colunas, iteracoes=200):
+    """Ajuste proporcional iterativo (IPF): escala a matriz até as somas de linha e de coluna serem iguais aos totais observados.
+    O EM respeita as colunas, mas as linhas só aproximadamente; sem o ajuste, a soma da origem não bate com o total do TSE."""
+    t = t.copy()
+    for _ in range(iteracoes):
+        t *= np.divide(linhas, t.sum(1), out=np.ones_like(linhas), where=t.sum(1) > 0)[:, None]
+        t *= np.divide(colunas, t.sum(0), out=np.ones_like(colunas), where=t.sum(0) > 0)[None, :]
+        if np.abs(t.sum(1) - linhas).max() < 1e-6 * linhas.sum():
+            break
+    return t
+
+
+def estimar(df, r, c, iteracoes=3000):
+    """Estima P por UF e soma os fluxos esperados. Devolve T nacional (5×4) e T por UF, com as margens iguais às observadas."""
     t_uf = {}
     for uf, idx in df.groupby('uf').indices.items():
         p = em(r[idx], c[idx], iteracoes=iteracoes)
-        t_uf[uf] = fluxo_total(r[idx], c[idx], p)
+        t_uf[uf] = ajustar_margens(fluxo_total(r[idx], c[idx], p), r[idx].sum(0), c[idx].sum(0))
     return sum(t_uf.values()), t_uf
 
 
@@ -94,8 +106,8 @@ def bootstrap(df, r, c, reps, semente=1):
         for uf, muns in por_uf.items():
             escolha = rng.integers(0, len(muns), len(muns))
             idx = np.concatenate([muns[k] for k in escolha])
-            p = em(r[idx], c[idx], p0=base_p[uf], iteracoes=60)
-            t += fluxo_total(r[idx], c[idx], p) * (r[np.concatenate(muns)].sum() / r[idx].sum())  # reescala ao universo original da UF
+            p = em(r[idx], c[idx], p0=base_p[uf], iteracoes=150)
+            t += ajustar_margens(fluxo_total(r[idx], c[idx], p), r[idx].sum(0), c[idx].sum(0)) * (r[np.concatenate(muns)].sum() / r[idx].sum())  # reescala ao universo original da UF
         saidas.append(t)
     return np.array(saidas)
 
