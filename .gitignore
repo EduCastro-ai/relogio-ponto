@@ -10,3 +10,5 @@ supabase/.temp/
 
 painel-eleicoes/dados/
 painel-eleicoes/dist/
+painel-eleicoes/.venv/
+__pycache__/
