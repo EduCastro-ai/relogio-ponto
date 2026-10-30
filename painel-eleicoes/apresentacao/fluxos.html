@@ -163,15 +163,15 @@ function desenhar() {
       y = Math.max(y, ultimo + alt); ultimo = y; rot(x, y, n, compacto ? fm(tot[i]) : texto(tot[i]), ancora, compacto, ex);
     });
   };
-  // fatia entre os finalistas (Lula ÷ (Lula + Flávio)) sob os nós de Lula e de Flávio, só no modo "todos os eleitores"
-  const fat = (a, b) => ({ texto: `${f1(a / (a + b) * 100)}% entre os finalistas`, cor: null });
+  // % entre os dois candidatos (Lula ÷ (Lula + Flávio)) sob os nós de Lula e de Flávio, só no modo "todos os eleitores"
+  const fat = (a, b) => ({ texto: `${f1(a / (a + b) * 100)}% entre os dois candidatos`, cor: null });
   const ex1 = modo === 'tudo' ? [{ ...fat(mg.L1, mg.F1), cor: '#c62828' }, { ...fat(mg.F1, mg.L1), cor: '#1565c0' }] : null;
   const ex2 = modo === 'tudo' ? [{ ...fat(mg.L2, mg.F2), cor: '#c62828' }, { ...fat(mg.F2, mg.L2), cor: '#1565c0' }] : null;
   rotular(ORIG, sL, yL, XL - 10, 'end', v => modo === 'mud' ? `${fm(v)} mudaram de categoria` : `${fm(v)} no 1º turno`, CORIG, XL, ex1);
   rotular(DEST, sR, yR, XR + NW + 10, 'start', v => modo === 'mud' ? `${fm(v)} vieram de outra categoria` : `${fm(v)} no 2º turno`, CDEST, XR, ex2);
   svg.appendChild(gl); svg.appendChild(gn); svg.appendChild(gt);
   document.getElementById('resumo').textContent = `${nomeRec(rec)} · escala: a espessura é proporcional ao número de eleitores`;
-  document.getElementById('notaGrafico').textContent = (modo === 'mud' ? 'Mostra só os fluxos entre categorias diferentes (por exemplo, "Outros candidatos → Lula" ou "Abstenção → Flávio"); quem manteve a mesma categoria no 2º turno não aparece. ' : 'Faixas mais claras = eleitores que permaneceram na mesma categoria. ') + 'Passe o mouse sobre uma faixa para ver o valor e o intervalo. Fatia entre os finalistas = Lula ÷ (Lula + Flávio), sem os demais candidatos; as variações usam Lula como referência (sinal + = a favor de Lula). Etiquetas: "Gap fechado" (Flávio liderava e a vantagem caiu), "Virada" (Lula passou à frente) e "Vantagem ampliada" (Lula já liderava).' + (ic ? '' : ' Para regiões e estados não há intervalo de incerteza calculado.') + (rc && rc.secoes < POUCAS ? ` Atenção: este recorte tem poucas seções (${f0(rc.secoes)}); a estimativa dos fluxos é menos precisa e o intervalo é largo.` : '');
+  document.getElementById('notaGrafico').textContent = (modo === 'mud' ? 'Mostra só os fluxos entre categorias diferentes (por exemplo, "Outros candidatos → Lula" ou "Abstenção → Flávio"); quem manteve a mesma categoria no 2º turno não aparece. ' : 'Faixas mais claras = eleitores que permaneceram na mesma categoria. ') + 'Passe o mouse sobre uma faixa para ver o valor e o intervalo. A % entre os dois candidatos é Lula ÷ (Lula + Flávio), sem os demais candidatos; as variações usam Lula como referência (sinal + = a favor de Lula). Etiquetas: "Gap fechado" (Flávio liderava e a vantagem caiu), "Virada" (Lula passou à frente) e "Vantagem ampliada" (Lula já liderava).' + (ic ? '' : ' Para regiões e estados não há intervalo de incerteza calculado.') + (rc && rc.secoes < POUCAS ? ` Atenção: este recorte tem poucas seções (${f0(rc.secoes)}); a estimativa dos fluxos é menos precisa e o intervalo é largo.` : '');
   tabela(T, ic, rec);
   faixa(rec);
 }
@@ -197,14 +197,14 @@ function faixa(rec) {
   document.getElementById('faixa').innerHTML = `<div class="vh"><span class="pill ${pro ? '' : 'contra'}">${rotulo}</span><span class="vt">${nomeRec(rec)}</span></div>
     <div class="vs">${frase}</div>
     <table class="vtab"><thead><tr><th></th><th>1º turno</th><th>2º turno</th><th>Variação</th></tr></thead><tbody>
-      ${linha('Lula · fatia entre os finalistas', 'L', `${f1(fat1)}%`, `${f1(fat2)}%`, `${sg(fat2 - fat1)} p.p.`)}
-      ${linha('Flávio · fatia entre os finalistas', 'F', `${f1(100 - fat1)}%`, `${f1(100 - fat2)}%`, `${sg(fat1 - fat2)} p.p.`)}
+      ${linha('Lula · % entre os dois candidatos', 'L', `${f1(fat1)}%`, `${f1(fat2)}%`, `${sg(fat2 - fat1)} p.p.`)}
+      ${linha('Flávio · % entre os dois candidatos', 'F', `${f1(100 - fat1)}%`, `${f1(100 - fat2)}%`, `${sg(fat1 - fat2)} p.p.`)}
       ${linha('Lula · votos', 'L', fm(g.L1), fm(g.L2), sgm(g.L2 - g.L1))}
       ${linha('Flávio · votos', 'F', fm(g.F1), fm(g.F2), sgm(g.F2 - g.F1))}
       ${linha('Margem de Lula sobre Flávio · votos', '', sgm(g.d1), sgm(g.d2), sgm(g.d2 - g.d1), true)}
       ${linha('Margem de Lula sobre Flávio · % dos votos válidos', '', `${sg(g.m1)} p.p.`, `${sg(g.m2)} p.p.`, `${sg(dl)} p.p.`, true)}
     </tbody></table>
-    <div class="vn">Lula como referência: sinal + = a favor de Lula. Fatia entre os finalistas = Lula ÷ (Lula + Flávio).</div>`;
+    <div class="vn">Lula como referência: sinal + = a favor de Lula. A % entre os dois candidatos é Lula ÷ (Lula + Flávio).</div>`;
 }
 function estados() {
   const dados = Object.keys(NOMEUF).map(u => ({ u, ...margens('U:' + u) })).map(e => ({ ...e, dl: e.m2 - e.m1, cl: classe(e) }));
