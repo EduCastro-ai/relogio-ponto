@@ -49,7 +49,7 @@ R.regioes = [...por(br, m => m.regiao)].map(([k, a]) => ({ k, ...tot(a) }));
 R.ufs = [...por(br, m => m.uf)].map(([k, a]) => ({ k, regiao: a[0].regiao, ...tot(a) }));
 // Capitais × interior
 R.capitaisAgg = tot(br.filter(m => m.capital)); R.interiorAgg = tot(br.filter(m => !m.capital));
-R.capitais = br.filter(m => m.capital).map(m => ({ nome: m.nome, uf: m.uf, regiao: m.regiao, ...tot([m]), dsh: m.dsh })).sort((a, b) => b.val2 - a.val2);
+R.capitais = br.filter(m => m.capital).map(m => ({ nome: m.nome, uf: m.uf, regiao: m.regiao, tse: Number(m.tse), ibge: m.ibge, ...tot([m]), dsh: m.dsh })).sort((a, b) => b.val2 - a.val2);
 // Tamanho
 R.faixas = FAIXAS.map(([k, nome]) => ({ k, nome, ...tot(br.filter(m => m.faixa === k)) }));
 // Região × tamanho (Δ fatia e saldo de votos)

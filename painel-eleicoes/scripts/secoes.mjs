@@ -3,6 +3,7 @@
 // Entradas (dados/tse-csv/<pasta do zip>/): votacao_secao_2026_BR.csv e detalhe_votacao_secao_2026_BR.csv.
 // Saída: dados/secoes.csv (uma linha por seção presente nos dois turnos) e dados/secoes-resumo.json (conferências).
 // Colunas da saída: uf, mun (código TSE), zona, secao, A1, C1, L1, F1, O1, B1, A2, C2, L2, F2, B2
+//   local = número do local de votação (usado como unidade de reamostragem no bootstrap das capitais)
 //   A = aptos, C = comparecimento, L = Lula, F = Flávio, O = outros candidatos (só 1º turno), B = brancos + nulos.
 // Uso: node scripts/secoes.mjs
 import { createReadStream } from 'node:fs';
@@ -56,7 +57,7 @@ for (const arq of arqVot) {
   console.log('lendo', path.basename(arq));
   for await (const r of registros(arq)) {
     if (r.DS_CARGO !== 'Presidente') continue;
-    const a = pegar(r), q = Number(r.QT_VOTOS);
+    const a = pegar(r), q = Number(r.QT_VOTOS); a.local ??= Number(r.NR_LOCAL_VOTACAO);
     if (r.NR_VOTAVEL === '13') a.L += q; else if (r.NR_VOTAVEL === '22') a.F += q;
     else if (/^VOTO (BRANCO|NULO)/.test(r.NM_VOTAVEL)) a.B += q; else a.O += q;
   }
@@ -73,7 +74,7 @@ for (const arq of arqDet) {
 const chaves = new Map(); // `${uf}|${mun}|${zona}|${secao}` -> [t1, t2]
 for (const [k, v] of secs) { const [t, ...resto] = k.split('|'); const kk = resto.join('|'); let p = chaves.get(kk); if (!p) chaves.set(kk, p = [null, null]); p[Number(t) - 1] = v; }
 const soma = (arr) => arr.reduce((s, x) => s + x, 0);
-let ambos = 0, so1 = 0, so2 = 0; const linhas = ['uf;mun;zona;secao;A1;C1;L1;F1;O1;B1;A2;C2;L2;F2;B2'];
+let ambos = 0, so1 = 0, so2 = 0; const linhas = ['uf;mun;zona;secao;local;A1;C1;L1;F1;O1;B1;A2;C2;L2;F2;B2'];
 const fora = { so1: { A: 0, C: 0, L: 0, F: 0 }, so2: { A: 0, C: 0, L: 0, F: 0 } }, dentro = { A1: 0, C1: 0, L1: 0, F1: 0, A2: 0, C2: 0, L2: 0, F2: 0 };
 let incoerentes = 0;
 for (const [k, [a, b]] of chaves) {
@@ -81,7 +82,7 @@ for (const [k, [a, b]] of chaves) {
     ambos++;
     // coerência: comparecimento = L + F + O + B em cada turno
     if (a.C !== a.L + a.F + a.O + a.B || b.C !== b.L + b.F + b.O + b.B) incoerentes++;
-    linhas.push([k.replaceAll('|', ';'), a.A, a.C, a.L, a.F, a.O, a.B, b.A, b.C, b.L, b.F, b.B].join(';'));
+    linhas.push([k.replaceAll('|', ';'), a.local ?? b.local ?? 0, a.A, a.C, a.L, a.F, a.O, a.B, b.A, b.C, b.L, b.F, b.B].join(';'));
     dentro.A1 += a.A; dentro.C1 += a.C; dentro.L1 += a.L; dentro.F1 += a.F; dentro.A2 += b.A; dentro.C2 += b.C; dentro.L2 += b.L; dentro.F2 += b.F;
   } else if (a) { so1++; for (const c of ['A', 'C', 'L', 'F']) fora.so1[c] += a[c]; } else { so2++; for (const c of ['A', 'C', 'L', 'F']) fora.so2[c] += b[c]; }
 }

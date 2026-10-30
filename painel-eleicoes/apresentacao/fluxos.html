@@ -73,9 +73,9 @@ footer { font-size:11.5px; color:var(--mut); padding:4px 2px; }
   <div class="card"><h2>Método e limitações</h2>
     <ul>
       <li><b>Dados:</b> resultado presidencial por seção eleitoral (499.248 seções), 1º e 2º turnos, dados abertos do TSE. Em cada seção o 1º turno é separado em Lula, Flávio, outros candidatos, brancos/nulos e abstenção; o 2º turno, em Lula, Flávio, brancos/nulos e abstenção. As somas conferem com os totais do TSE.</li>
-      <li><b>Modelo:</b> estimativa de máxima verossimilhança (EM multinomial), com probabilidades de transição próprias de cada UF. Supõe que, dentro da UF, o eleitor de cada origem se comporta de modo parecido nas seções.</li>
-      <li><b>Intervalo:</b> bootstrap de municípios (100 repetições), só para o total do Brasil. Mede a incerteza de amostragem e <b>não</b> inclui o viés do modelo. Para regiões e estados não há intervalo calculado.</li>
-      <li><b>Validação por simulação:</b> com comportamento homogêneo ou com ruído aleatório entre seções, o erro nos fluxos principais ficou abaixo de 1%. Quando o comportamento muda com o perfil da seção (efeito contextual), o fluxo "Outros → Lula" foi subestimado em 16% a 35% e "Outros → Flávio" superestimado em 6% a 12%.</li>
+      <li><b>Modelo:</b> estimativa de máxima verossimilhança (EM multinomial), com probabilidades de transição próprias de cada estrato: cada uma das 27 capitais, o restante (interior) de cada UF e o exterior. Supõe que, dentro de um estrato, o eleitor de cada origem se comporta de modo parecido nas seções. Como os estratos não se sobrepõem, Brasil = capitais + demais municípios + exterior, e cada estado = capital + interior.</li>
+      <li><b>Intervalo:</b> bootstrap (100 repetições) que reamostra locais de votação dentro de cada capital e municípios dentro do interior de cada UF; calculado para o Brasil, as 27 capitais juntas, os demais municípios e cada capital. Mede a incerteza de amostragem e <b>não</b> inclui o viés do modelo. Para regiões e estados não há intervalo calculado.</li>
+      <li><b>Validação por simulação:</b> com comportamento homogêneo ou com ruído aleatório entre seções, o erro ficou abaixo de 2,5% em todos os fluxos testados, no Brasil, nas 27 capitais e nos demais municípios. Quando o comportamento muda com o perfil da seção (efeito contextual simulado), "Outros → Lula" foi subestimado em 17% a 32% no Brasil e em 21% a 42% nos demais municípios, e "Outros → Flávio" superestimado em 7% a 17%. Nas 27 capitais o viés simulado foi menor (4% a 6% em "Outros → Lula"), mas o efeito real entre bairros de uma mesma cidade pode ser mais forte que o simulado.</li>
       <li><b>Confiabilidade:</b> os fluxos de brancos/nulos e de abstenção são os menos confiáveis. Fluxos muito pequenos (como Lula → Flávio, estimado perto de zero) devem ser lidos como "praticamente nenhum", não como valor exato.</li>
       <li><b>Aptos:</b> em 55.722 seções (11%) o número de aptos difere entre os turnos (eleitores trocaram de seção; a soma nacional é igual). Em 95% delas a diferença é de até 2 eleitores; a origem foi reescalada ao total do 2º turno.</li>
       <li><b>Uso:</b> trate como ordem de grandeza e hipótese de trabalho, não como medida. Decisões ou comunicação externa exigem conferir os dados na fonte oficial (TSE).</li>
@@ -101,14 +101,16 @@ const soma = (ms) => ms.reduce((a, m) => a.map((l, i) => l.map((v, j) => v + m[i
 
 const opcoes = [['BR', 'Brasil (todas as seções, inclui o exterior)']];
 const sel = document.getElementById('selRec');
-sel.innerHTML = '<option value="BR">Brasil (inclui o exterior)</option><optgroup label="Regiões">' + ['Norte', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul'].map(r => `<option value="R:${r}">${r}</option>`).join('') + '</optgroup><optgroup label="Estados">' + Object.entries(NOMEUF).map(([k, v]) => `<option value="U:${k}">${v}</option>`).join('') + '</optgroup>';
+const CAPS = Object.entries(OFICIAL.C).sort((a, b) => a[1].nome.localeCompare(b[1].nome, 'pt-BR'));
+const POUCAS = 1000; // abaixo disso, avisa que a estimativa dos fluxos é menos precisa
+sel.innerHTML = '<option value="BR">Brasil (inclui o exterior)</option><optgroup label="Capitais e demais municípios"><option value="K:ALL">27 capitais (juntas)</option><option value="K:INT">Demais municípios (sem as capitais)</option></optgroup><optgroup label="Cada capital">' + CAPS.map(([u, c]) => `<option value="C:${u}">${c.nome} (${u})</option>`).join('') + '</optgroup><optgroup label="Regiões">' + ['Norte', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul'].map(r => `<option value="R:${r}">${r}</option>`).join('') + '</optgroup><optgroup label="Estados">' + Object.entries(NOMEUF).map(([k, v]) => `<option value="U:${k}">${v}</option>`).join('') + '</optgroup>';
 let modo = 'tudo';
 const matriz = rec => {
-  if (rec === 'BR') return D.estimativa;
+  if (D.recortes[rec]) return D.recortes[rec].estimativa;
   if (rec.startsWith('R:')) return soma(Object.entries(D.estimativa_por_uf).filter(([u]) => REGIAO[u] === rec.slice(2)).map(([, m]) => m));
   return D.estimativa_por_uf[rec.slice(2)];
 };
-const nomeRec = rec => rec === 'BR' ? 'Brasil' : rec.startsWith('R:') ? 'Região ' + rec.slice(2) : NOMEUF[rec.slice(2)];
+const nomeRec = rec => rec === 'BR' ? 'Brasil' : rec === 'K:ALL' ? '27 capitais, juntas' : rec === 'K:INT' ? 'Demais municípios, sem as capitais' : rec.startsWith('C:') ? OFICIAL.C[rec.slice(2)].nome + ' · capital' : rec.startsWith('R:') ? 'Região ' + rec.slice(2) : NOMEUF[rec.slice(2)];
 
 const svg = document.getElementById('grafico'), tip = document.getElementById('tip');
 const W = 1100, H = 580, NW = 18, XL = 230, XR = W - 230 - NW, MYT = 38, MYB = 22, GAP = 16, NS = 'http://www.w3.org/2000/svg';
@@ -116,7 +118,7 @@ const el = (tag, at, pai = svg) => { const e = document.createElementNS(NS, tag)
 const mostrarTip = (ev, html) => { tip.innerHTML = html; tip.style.display = 'block'; tip.style.left = Math.min(ev.clientX + 14, innerWidth - 320) + 'px'; tip.style.top = (ev.clientY + 14) + 'px'; };
 
 function desenhar() {
-  const rec = sel.value, T = matriz(rec), nac = rec === 'BR';
+  const rec = sel.value, T = matriz(rec), rc = D.recortes[rec] || null, ic = rc && rc.ic;
   svg.innerHTML = '';
   const links = [];
   for (let i = 0; i < 5; i++) for (let j = 0; j < 4; j++) { const v = T[i][j]; if (v <= 0) continue; if (modo === 'mud' && DIAG[i] === j) continue; links.push({ i, j, v }); }
@@ -140,9 +142,9 @@ function desenhar() {
     const d = `M${x0},${l.sy} C${xm},${l.sy} ${xm},${l.ty} ${x1},${l.ty} L${x1},${l.ty + l.w} C${xm},${l.ty + l.w} ${xm},${l.sy + l.w} ${x0},${l.sy + l.w} Z`;
     const p = el('path', { d, fill: CDEST[l.j], 'fill-opacity': DIAG[l.i] === l.j ? .28 : .6, stroke: CDEST[l.j], 'stroke-opacity': .5, 'stroke-width': .4 }, gl);
     const pctOrig = l.v / T[l.i].reduce((x, y) => x + y, 0) * 100;
-    const ic = nac ? `<br>Intervalo de 95%: ${fm(D.bootstrap.p025[l.i][l.j])} a ${fm(D.bootstrap.p975[l.i][l.j])}` : '<br><i>Intervalo não calculado para este recorte</i>';
-    const lim = nac ? `<br>Limites exatos: ${fm(D.limite_inferior[l.i][l.j])} a ${fm(D.limite_superior[l.i][l.j])}` : '';
-    p.addEventListener('mousemove', ev => { gl.querySelectorAll('path').forEach(q => q.style.opacity = q === p ? 1 : .25); mostrarTip(ev, `<b>${ORIG[l.i]} (1º t.) → ${DEST[l.j]} (2º t.)</b><br>Estimativa: <b>${fm(l.v)}</b> (${f1(pctOrig)}% de quem era ${ORIG[l.i].toLowerCase()} no 1º turno)${ic}${lim}`); });
+    const icT = ic ? `<br>Intervalo de 95%: ${fm(ic.p025[l.i][l.j])} a ${fm(ic.p975[l.i][l.j])}` : '<br><i>Intervalo não calculado para este recorte</i>';
+    const lim = rc ? `<br>Limites exatos: ${fm(rc.limite_inferior[l.i][l.j])} a ${fm(rc.limite_superior[l.i][l.j])}` : '';
+    p.addEventListener('mousemove', ev => { gl.querySelectorAll('path').forEach(q => q.style.opacity = q === p ? 1 : .25); mostrarTip(ev, `<b>${ORIG[l.i]} (1º t.) → ${DEST[l.j]} (2º t.)</b><br>Estimativa: <b>${fm(l.v)}</b> (${f1(pctOrig)}% de quem era ${ORIG[l.i].toLowerCase()} no 1º turno)${icT}${lim}`); });
     p.addEventListener('mouseleave', () => { gl.querySelectorAll('path').forEach(q => q.style.opacity = 1); tip.style.display = 'none'; });
     if (l.w > 15 && !(DIAG[l.i] === l.j && modo === 'tudo' && l.w > 160)) el('text', { x: x0 + 14, y: l.sy + l.w / 2, 'dominant-baseline': 'central', 'font-size': 11.5, 'font-weight': 700, fill: '#fff', 'pointer-events': 'none', style: 'paint-order:stroke;stroke:rgba(0,0,0,.25);stroke-width:2px' }, gt).textContent = fm(l.v);
   });
@@ -169,14 +171,14 @@ function desenhar() {
   rotular(DEST, sR, yR, XR + NW + 10, 'start', v => modo === 'mud' ? `${fm(v)} vieram de outra categoria` : `${fm(v)} no 2º turno`, CDEST, XR, ex2);
   svg.appendChild(gl); svg.appendChild(gn); svg.appendChild(gt);
   document.getElementById('resumo').textContent = `${nomeRec(rec)} · escala: a espessura é proporcional ao número de eleitores`;
-  document.getElementById('notaGrafico').textContent = (modo === 'mud' ? 'Mostra só os fluxos entre categorias diferentes (por exemplo, "Outros candidatos → Lula" ou "Abstenção → Flávio"); quem manteve a mesma categoria no 2º turno não aparece. ' : 'Faixas mais claras = eleitores que permaneceram na mesma categoria. ') + 'Passe o mouse sobre uma faixa para ver o valor e o intervalo. Fatia entre os finalistas = Lula ÷ (Lula + Flávio), sem os demais candidatos; as variações usam Lula como referência (sinal + = a favor de Lula). Etiquetas: "Gap fechado" (Flávio liderava e a vantagem caiu), "Virada" (Lula passou à frente) e "Vantagem ampliada" (Lula já liderava).' + (nac ? '' : ' Para regiões e estados não há intervalo de incerteza calculado.');
-  tabela(T, nac, rec);
+  document.getElementById('notaGrafico').textContent = (modo === 'mud' ? 'Mostra só os fluxos entre categorias diferentes (por exemplo, "Outros candidatos → Lula" ou "Abstenção → Flávio"); quem manteve a mesma categoria no 2º turno não aparece. ' : 'Faixas mais claras = eleitores que permaneceram na mesma categoria. ') + 'Passe o mouse sobre uma faixa para ver o valor e o intervalo. Fatia entre os finalistas = Lula ÷ (Lula + Flávio), sem os demais candidatos; as variações usam Lula como referência (sinal + = a favor de Lula). Etiquetas: "Gap fechado" (Flávio liderava e a vantagem caiu), "Virada" (Lula passou à frente) e "Vantagem ampliada" (Lula já liderava).' + (ic ? '' : ' Para regiões e estados não há intervalo de incerteza calculado.') + (rc && rc.secoes < POUCAS ? ` Atenção: este recorte tem poucas seções (${f0(rc.secoes)}); a estimativa dos fluxos é menos precisa e o intervalo é largo.` : '');
+  tabela(T, ic, rec);
   faixa(rec);
 }
 // Margem Lula − Flávio (p.p. dos válidos de cada turno) e em votos, a partir dos totais oficiais do TSE (soma das seções)
 function margens(rec) {
   const so = lista => lista.reduce((a, o) => ({ L1: a.L1 + o.L1, F1: a.F1 + o.F1, O1: a.O1 + o.O1, L2: a.L2 + o.L2, F2: a.F2 + o.F2 }), { L1: 0, F1: 0, O1: 0, L2: 0, F2: 0 });
-  const o = rec === 'BR' ? OFICIAL.BR : rec.startsWith('R:') ? so(Object.values(OFICIAL.UF).filter(u => u.regiao === rec.slice(2))) : OFICIAL.UF[rec.slice(2)];
+  const o = rec === 'BR' ? OFICIAL.BR : rec === 'K:ALL' ? OFICIAL.K.ALL : rec === 'K:INT' ? OFICIAL.K.INT : rec.startsWith('C:') ? OFICIAL.C[rec.slice(2)] : rec.startsWith('R:') ? so(Object.values(OFICIAL.UF).filter(u => u.regiao === rec.slice(2))) : OFICIAL.UF[rec.slice(2)];
   const v1 = o.L1 + o.F1 + o.O1, v2 = o.L2 + o.F2;
   return { m1: (o.L1 - o.F1) / v1 * 100, m2: (o.L2 - o.F2) / v2 * 100, d1: o.L1 - o.F1, d2: o.L2 - o.F2, L1: o.L1, F1: o.F1, L2: o.L2, F2: o.F2 };
 }
@@ -239,10 +241,10 @@ function estados() {
   });
 }
 const d3sum = a => a.reduce((x, y) => x + y, 0);
-function tabela(T, nac, rec) {
-  document.getElementById('subTabela').textContent = `(${nomeRec(rec)}; eleitores e % da origem${nac ? '; intervalo de 95% por bootstrap' : ''})`;
+function tabela(T, ic, rec) {
+  document.getElementById('subTabela').textContent = `(${nomeRec(rec)}; eleitores e % da origem${ic ? '; intervalo de 95% por bootstrap' : ''})`;
   let h = '<table><thead><tr><th>1º turno ↓ / 2º turno →</th>' + DEST.map(d => `<th>${d}</th>`).join('') + '<th>Total</th></tr></thead><tbody>';
-  T.forEach((l, i) => { const tot = d3sum(l); h += `<tr><td><b>${ORIG[i]}</b></td>` + l.map((v, j) => `<td>${fm(v)}<small>${f1(v / tot * 100)}%${nac ? ` · ${fm(D.bootstrap.p025[i][j])} a ${fm(D.bootstrap.p975[i][j])}` : ''}</small></td>`).join('') + `<td>${fm(tot)}</td></tr>`; });
+  T.forEach((l, i) => { const tot = d3sum(l); h += `<tr><td><b>${ORIG[i]}</b></td>` + l.map((v, j) => `<td>${fm(v)}<small>${f1(v / tot * 100)}%${ic ? ` · ${fm(ic.p025[i][j])} a ${fm(ic.p975[i][j])}` : ''}</small></td>`).join('') + `<td>${fm(tot)}</td></tr>`; });
   const col = DEST.map((_, j) => d3sum(T.map(l => l[j])));
   h += '<tr><td><b>Total 2º turno</b></td>' + col.map(v => `<td>${fm(v)}</td>`).join('') + `<td>${fm(d3sum(col))}</td></tr></tbody></table>`;
   document.getElementById('tabela').innerHTML = h;

@@ -41,6 +41,16 @@ Os passos 1 e 2 já cobrem os dois turnos. O passo 3 usa os CSVs de dados aberto
 3. Se o resultado vier em arquivo novo (e não na mesma URL), ajustar `ARQUIVOS` em `verificar-tse.mjs`.
 4. Recarregar o painel: swing e viradas por local e por bairro passam a funcionar sem mudar o código.
 
+## Apresentação e gráfico de fluxo de votos
+
+- **Apresentação "Análise da Virada Eleitoral":** `node scripts/analise.mjs` (gera `dados/analise.json`) e `node scripts/apresentacao.mjs` (gera `dist/apresentacao-virada-2026.html`; o PDF sai do Chrome em modo headless).
+- **Gráfico de fluxo 1º → 2º turno (estimativa):** o voto é secreto, então os fluxos entre categorias (Lula, Flávio, outros, brancos/nulos, abstenção) são estimados por inferência ecológica a partir das seções. Precisa do ambiente Python do projeto (`painel-eleicoes/.venv`, com numpy, pandas, scipy, pymc e arviz).
+  1. `node scripts/secoes.mjs`: base por seção com os dois turnos (`dados/secoes.csv`).
+  2. `.venv\Scripts\python.exe scripts/fluxos.py --boot 100`: limites exatos, estimativa EM por estrato (cada capital, o interior de cada UF e o exterior) e intervalo por bootstrap (`dados/fluxos.json`).
+  3. `.venv\Scripts\python.exe scripts/fluxos_validacao.py`: valida o estimador com dados simulados.
+  4. `node scripts/fluxos-html.mjs`: gera `dist/fluxos-votos-2026.html`, autônomo. Abra esse arquivo, não o modelo `apresentacao/fluxos.html`.
+- Recortes do gráfico: Brasil, 27 capitais juntas, demais municípios, cada capital, regiões e estados. As margens e a fatia entre os finalistas vêm dos totais oficiais do TSE; só os fluxos entre categorias são estimados, com aviso de método na página.
+
 ## Observações sobre os dados
 
 - O cadastro de locais usa código de município com zeros à esquerda; os scripts normalizam.

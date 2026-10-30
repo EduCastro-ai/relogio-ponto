@@ -45,11 +45,11 @@ def softmax(z):
 
 
 def cenarios(df, r):
-    """Devolve (nome, p_si) para cada cenário, partindo de P verdadeira por UF (estimada nos dados reais)."""
-    p_uf = {uf: fx.em(r[i], r_dest(df, r, i)) for uf, i in df.groupby('uf').indices.items()}
+    """Devolve (nome, p_si) para cada cenário, partindo de P verdadeira por estrato (cada capital e o interior de cada UF), estimada nos dados reais."""
+    p_uf = {uf: fx.em(r[i], r_dest(df, r, i)) for uf, i in df.groupby('estrato').indices.items()}
     S, K, J = len(df), r.shape[1], 4
     base = np.zeros((S, K, J))
-    for uf, i in df.groupby('uf').indices.items():
+    for uf, i in df.groupby('estrato').indices.items():
         base[i] = p_uf[uf]
     base = np.clip(base, 1e-4, None); base /= base.sum(-1, keepdims=True)
     logit = np.log(base)
@@ -82,18 +82,20 @@ def main():
     nomes_c = ['Outros→Lula', 'Outros→Flávio', 'Abst.→Lula', 'Abst.→Flávio', 'Brancos/nulos→Lula', 'Lula→Lula', 'Flávio→Flávio']
     pos = [(2, 0), (2, 1), (4, 0), (4, 1), (3, 0), (0, 0), (1, 1)]
     linhas = []
+    m_cap = df.capital.to_numpy(); m_int = (~df.capital & (df.uf != 'ZZ')).to_numpy()
     for nome, p_si in cenarios(df, r):
         c, t = sortear_destino(r, p_si)
-        t_verd = t.sum(0)
-        t_est, _ = fx.estimar(df, r, c)
-        inf, sup = fx.limites(r, c)
-        for (i, j), n in zip(pos, nomes_c):
-            linhas.append({'cenário': nome, 'fluxo': n, 'verdadeiro (mi)': t_verd[i, j] / 1e6, 'estimado (mi)': t_est[i, j] / 1e6,
-                           'erro (mi)': (t_est[i, j] - t_verd[i, j]) / 1e6, 'erro (%)': (t_est[i, j] - t_verd[i, j]) / t_verd[i, j] * 100,
-                           'limite inf. (mi)': inf[i, j] / 1e6, 'limite sup. (mi)': sup[i, j] / 1e6,
-                           'dentro dos limites': bool(inf[i, j] <= t_verd[i, j] <= sup[i, j])})
-        erro_abs = np.abs(t_est - t_verd).sum() / 2 / t_verd.sum() * 100
-        print(f'{nome}: fração de eleitores alocada no fluxo errado = {erro_abs:.2f}%')
+        t_total, t_est = fx.estimar(df, r, c)
+        _, _, cap_total, interior = fx.agrupar(t_est)
+        for grupo, m, t_e in (('Brasil', np.ones(len(df), bool), t_total), ('27 capitais', m_cap, cap_total), ('Demais municípios', m_int, interior)):
+            t_verd = t[m].sum(0)
+            inf, sup = fx.limites(r[m], c[m])
+            for (i, j), n in zip(pos, nomes_c):
+                linhas.append({'cenário': nome, 'grupo': grupo, 'fluxo': n, 'verdadeiro (mi)': t_verd[i, j] / 1e6, 'estimado (mi)': t_e[i, j] / 1e6,
+                               'erro (mi)': (t_e[i, j] - t_verd[i, j]) / 1e6, 'erro (%)': (t_e[i, j] - t_verd[i, j]) / t_verd[i, j] * 100,
+                               'dentro dos limites': bool(inf[i, j] <= t_verd[i, j] <= sup[i, j])})
+            erro_abs = np.abs(t_e - t_verd).sum() / 2 / t_verd.sum() * 100
+            print(f'{nome} | {grupo}: fração de eleitores alocada no fluxo errado = {erro_abs:.2f}%')
     res = pd.DataFrame(linhas)
     pd.set_option('display.width', 220); pd.set_option('display.max_rows', 100)
     print(res.round(2).to_string(index=False))
